@@ -487,7 +487,7 @@ abstract class ScrollPosition extends ViewportOffset with ScrollMetrics {
     ScrollPositionAlignmentPolicy alignmentPolicy = ScrollPositionAlignmentPolicy.explicit,
   }) {
     assert(object.attached);
-    final RenderAbstractViewport viewport = RenderAbstractViewport.of(object)!;
+    final RenderAbstractViewport viewport = RenderAbstractViewport.of(object);
 
     double? target;
     switch (alignmentPolicy) {

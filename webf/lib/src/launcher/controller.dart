@@ -767,6 +767,10 @@ class WebFController {
     _name = value;
   }
 
+  final SelectionRegistrar? registrar;
+
+  late Color? selectionColor;
+
   final GestureListener? _gestureListener;
 
   // The kraken view entrypoint bundle.
@@ -793,6 +797,8 @@ class WebFController {
     this.devToolsService,
     this.uriParser,
     this.initialCookies,
+    this.registrar,
+    this.selectionColor
   })  : _name = name,
         _entrypoint = entrypoint,
         _gestureListener = gestureListener {

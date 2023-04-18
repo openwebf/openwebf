@@ -207,8 +207,37 @@ class WebFState extends State<WebF> with RouteAware {
       return SizedBox(width: 0, height: 0);
     }
 
+    Widget _defaultContextMenuBuilder(BuildContext context, SelectableRegionState selectableRegionState) {
+      return AdaptiveTextSelectionToolbar.selectableRegion(
+        selectableRegionState: selectableRegionState,
+      );
+    }
+
+    TextSelectionControls? controls;
+    switch (Theme.of(context).platform) {
+      case TargetPlatform.android:
+      case TargetPlatform.fuchsia:
+        controls ??= materialTextSelectionHandleControls;
+        break;
+      case TargetPlatform.iOS:
+        controls ??= cupertinoTextSelectionHandleControls;
+        break;
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+        controls ??= desktopTextSelectionHandleControls;
+        break;
+      case TargetPlatform.macOS:
+        controls ??= cupertinoDesktopTextSelectionHandleControls;
+        break;
+    }
+
     return RepaintBoundary(
-      child: WebFContext(
+      child:
+      SelectableRegion(
+        focusNode: FocusNode(),
+        selectionControls: controls,
+        contextMenuBuilder: _defaultContextMenuBuilder,
+        child: WebFContext(
         child: WebFRootRenderObjectWidget(
           widget,
           onCustomElementAttached: onCustomElementWidgetAdd,
@@ -216,6 +245,7 @@ class WebFState extends State<WebF> with RouteAware {
           children: customElementWidgets.toList(),
         ),
       ),
+      )
     );
   }
 
@@ -301,6 +331,10 @@ class WebFRootRenderObjectWidget extends MultiChildRenderObjectWidget {
     double viewportWidth = _webfWidget.viewportWidth ?? window.physicalSize.width / window.devicePixelRatio;
     double viewportHeight = _webfWidget.viewportHeight ?? window.physicalSize.height / window.devicePixelRatio;
 
+    ThemeData theme = Theme.of(context);
+    final Color effectiveSelectionColor = theme.textSelectionTheme.selectionColor ?? theme.colorScheme.primary.withOpacity(0.40);
+    final SelectionRegistrarScope? scope = context.dependOnInheritedWidgetOfExactType<SelectionRegistrarScope>();
+
     WebFController controller = WebFController(shortHash(_webfWidget), viewportWidth, viewportHeight,
         background: _webfWidget.background,
         showPerformanceOverlay: Platform.environment[ENABLE_PERFORMANCE_OVERLAY] != null,
@@ -318,7 +352,9 @@ class WebFRootRenderObjectWidget extends MultiChildRenderObjectWidget {
         onCustomElementAttached: onCustomElementAttached,
         onCustomElementDetached: onCustomElementDetached,
         initialCookies: _webfWidget.initialCookies,
-        uriParser: _webfWidget.uriParser);
+        uriParser: _webfWidget.uriParser,
+        registrar: scope?.registrar,
+        selectionColor: effectiveSelectionColor);
 
     if (kProfileMode) {
       PerformanceTiming.instance().mark(PERF_CONTROLLER_INIT_END);
