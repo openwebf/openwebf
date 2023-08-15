@@ -114,7 +114,8 @@ class CSSLengthValue {
   static bool _isPercentageRelativeContainer(RenderBoxModel containerRenderBox) {
     CSSRenderStyle renderStyle = containerRenderBox.renderStyle;
     bool isBlockLevelBox =
-        renderStyle.display == CSSDisplay.block || renderStyle.display == CSSDisplay.flex;
+        renderStyle.display == CSSDisplay.block || renderStyle.display == CSSDisplay.flex ||
+            renderStyle.display == CSSDisplay.inline;
     bool isBlockInlineHaveSize = (renderStyle.effectiveDisplay == CSSDisplay.inlineBlock ||
             renderStyle.effectiveDisplay == CSSDisplay.inlineFlex) &&
         renderStyle.width.value != null;
