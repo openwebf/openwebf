@@ -1207,6 +1207,20 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     }
   }
 
+  @override
+  void childrenChanged(ChildrenChange change) {
+    super.childrenChanged(change);
+
+    if (change.byParser != ChildrenChangeSource.PARSER && change.isChildElementChange()) {
+      final changedElement = change.siblingChanged as Element?;
+      final removed = change.type == ChildrenChangeType.ELEMENT_REMOVED;
+      if (changedElement != null) {
+        checkForSiblingStyleChanges(this, removed, change.siblingBeforeChange,
+            change.siblingAfterChange);
+      }
+    }
+  }
+
   void _updateNameMap(String? newName, {String? oldName}) {
     if (oldName != null && oldName.isNotEmpty) {
       final elements = ownerDocument.elementsByName[oldName];
@@ -1487,6 +1501,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
   }
 
   void _applySheetStyle(CSSStyleDeclaration style) {
+
     CSSStyleDeclaration matchRule = _elementRuleCollector.collectionFromRuleSet(ownerDocument.ruleSet, this);
     style.union(matchRule);
   }

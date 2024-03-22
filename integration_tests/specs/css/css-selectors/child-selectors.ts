@@ -304,4 +304,133 @@ describe('css child selector', () => {
     document.body.appendChild(p9);
     await snapshot();
   });
+
+  it("015", async () => {
+    const style = (
+      <style>{`
+      .list {
+        align-items: center;
+        border-bottom: solid 1px #f2f2f2;
+        display: flex;
+        flex-shrink: 0;
+        overflow-x: auto;
+        padding: 24px 54px;
+        white-space: nowrap;
+        width: 100%;
+      }
+      .item {
+        flex-shrink: 0;
+        height: 40px;
+        width: 40px;
+        background: black;
+        margin-right: 20px;
+        position: relative;
+        color: white;
+      }
+      .item:last-child {
+        margin-right: 0px;
+      }
+      `}</style>
+    );
+    const div = <div class='list'></div>;
+    const item1 = <div class='item'> 1 </div>;
+    const item2 = <div class='item'> 2 </div>;
+    div.appendChild(item1);
+    div.appendChild(item2);
+    document.head.appendChild(style);
+    document.body.appendChild(div);
+    await snapshot();
+
+    const item3 = <div class='item'> 3 </div>;
+    div.appendChild(item3);
+    await snapshot(0.5);
+
+    div.removeChild(item2);
+    await snapshot(0.5);
+  });
+
+
+  it("016", async () => {
+    const style = (
+      <style>{`
+      .list {
+        align-items: center;
+        border: #000000;
+        display: flex;
+        flex-shrink: 0;
+        overflow-x: auto;
+        padding: 24px 54px;
+        white-space: nowrap;
+        width: 100%;
+      }
+      .item {
+        flex-shrink: 0;
+        height: 40px;
+        width: 40px;
+        background: black;
+        margin-left: 20px;
+        position: relative;
+        color: white;
+      }
+      .item:first-child {
+        margin-left: 0px;
+      }
+      `}</style>
+    );
+    const div = <div class='list'></div>;
+    const item1 = <div class='item'> 1 </div>;
+    const item2 = <div class='item'> 2 </div>;
+    div.appendChild(item1);
+    div.appendChild(item2);
+    document.head.appendChild(style);
+    document.body.appendChild(div);
+    await snapshot();
+
+    const item3 = <div class='item'> 3 </div>;
+    div.appendChild(item3);
+    await snapshot(0.5);
+
+    div.removeChild(item1);
+    await snapshot(0.5);
+  });
+
+  fit("017", async () => {
+    const style = (
+      <style>{`
+      .list {
+        align-items: center;
+        border: #000000;
+        display: flex;
+        flex-shrink: 0;
+        overflow-x: auto;
+        padding: 24px 54px;
+        white-space: nowrap;
+        width: 100%;
+      }
+      .item {
+        flex-shrink: 0;
+        height: 40px;
+        width: 40px;
+        background: red;
+        margin-left: 20px;
+        position: relative;
+        color: white;
+      }
+      .item:only-child {
+        background: green;
+      }
+      `}</style>
+    );
+    const div = <div class='list'></div>;
+    const item1 = <div class='item'> 1 </div>;
+    const item2 = <div class='item'> 2 </div>;
+    div.appendChild(item1);
+    div.appendChild(item2);
+    document.head.appendChild(style);
+    document.body.appendChild(div);
+    await snapshot();
+
+    div.removeChild(item2);
+    await snapshot(0.5);
+  });
 });

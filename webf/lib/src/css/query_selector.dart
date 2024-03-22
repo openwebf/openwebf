@@ -188,6 +188,9 @@ class SelectorEvaluator extends SelectorVisitor {
 
       // http://dev.w3.org/csswg/selectors-4/#the-first-child-pseudo
       case 'first-child':
+        if (_element!.parentElement != null) {
+          _element!.parentElement!.addFlag(DynamicRestyleFlag.ChildrenAffectedByFirstChildRules);
+        }
         if (_element!.previousElementSibling != null) {
           return _element!.previousElementSibling is HeadElement;
         }
@@ -195,6 +198,9 @@ class SelectorEvaluator extends SelectorVisitor {
 
       // http://dev.w3.org/csswg/selectors-4/#the-last-child-pseudo
       case 'last-child':
+        if (_element!.nextSibling != null && _element!.parentElement != null) {
+          _element!.parentElement!.addFlag(DynamicRestyleFlag.ChildrenAffectedByLastChildRules);
+        }
         return _element!.nextSibling == null;
 
       //http://drafts.csswg.org/selectors-4/#first-of-type-pseudo
@@ -214,14 +220,23 @@ class SelectorEvaluator extends SelectorVisitor {
           var isLast = index == children.length - 1;
 
           if (isFirst && node.name == 'first-of-type') {
+            if (_element!.parentElement != null) {
+              _element!.parentElement!.addFlag(DynamicRestyleFlag.ChildrenAffectedByForwardPositionalRules);
+            }
             return true;
           }
 
           if (isLast && node.name == 'last-of-type') {
+            if (_element!.parentElement != null) {
+              _element!.parentElement!.addFlag(DynamicRestyleFlag.ChildrenAffectedByBackwardPositionalRules);
+            }
             return true;
           }
 
           if (isFirst && isLast && node.name == 'only-of-type') {
+            if (_element!.parentElement != null) {
+              _element!.parentElement!.addFlag(DynamicRestyleFlag.ChildrenAffectedByFirstChildRules);
+            }
             return true;
           }
 
@@ -231,8 +246,14 @@ class SelectorEvaluator extends SelectorVisitor {
         break;
       // http://dev.w3.org/csswg/selectors-4/#the-only-child-pseudo
       case 'only-child':
-        return _element!.previousSibling == null && _element!.nextSibling == null;
-
+        if (_element!.parentElement != null) {
+          _element!.parentElement!.addFlag(DynamicRestyleFlag.ChildrenAffectedByFirstChildRules);
+          _element!.parentElement!.addFlag(DynamicRestyleFlag.ChildrenAffectedByLastChildRules);
+        }
+        if (_element!.previousSibling == null && _element!.nextSibling == null) {
+          return true;
+        }
+        return false;
       // http://dev.w3.org/csswg/selectors-4/#link
       case 'link':
         return _element!.attributes['href'] != null;

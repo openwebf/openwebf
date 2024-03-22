@@ -9,6 +9,27 @@ import 'package:webf/src/dom/node_traversal.dart';
 
 typedef InsertNodeHandler = void Function(ContainerNode container, Node child, Node? next);
 
+enum DynamicRestyleFlag {
+  ChildrenAffectedByFirstChildRules,
+  ChildrenAffectedByLastChildRules,
+  ChildrenAffectedByDirectAdjacentRules,
+  ChildrenAffectedByForwardPositionalRules,
+  ChildrenAffectedByBackwardPositionalRules,
+}
+
+extension StructuralRules on DynamicRestyleFlag {
+  bool childrenAffectedByStructuralRules() {
+    if (this == DynamicRestyleFlag.ChildrenAffectedByFirstChildRules ||
+        this == DynamicRestyleFlag.ChildrenAffectedByLastChildRules ||
+        this == DynamicRestyleFlag.ChildrenAffectedByDirectAdjacentRules ||
+        this == DynamicRestyleFlag.ChildrenAffectedByForwardPositionalRules ||
+        this == DynamicRestyleFlag.ChildrenAffectedByBackwardPositionalRules) {
+      return true;
+    }
+    return false;
+  }
+}
+
 bool collectChildrenAndRemoveFromOldParent(Node node, List<Node> nodes) {
   if (node is DocumentFragment) {
     getChildNodes(node, nodes);
@@ -32,6 +53,15 @@ void getChildNodes(ContainerNode node, List<Node> nodes) {
 
 abstract class ContainerNode extends Node {
   ContainerNode(NodeType nodeType, [BindingContext? context]) : super(nodeType, context);
+
+  List<DynamicRestyleFlag>? restyleFlags;
+
+  void addFlag(DynamicRestyleFlag flag) {
+    restyleFlags ??= [];
+    if (restyleFlags?.contains(flag) == false) {
+      restyleFlags?.add(flag);
+    }
+  }
 
   void _adoptAndAppendChild(ContainerNode container, Node child, Node? next) {
     child.parentOrShadowHostNode = this;
@@ -342,6 +372,70 @@ abstract class ContainerNode extends Node {
     }
     if (parentNode != null) {
       ownerDocument.nthIndexCache.invalidateWithParentNode(parentNode!);
+    }
+  }
+
+  void checkForSiblingStyleChanges(Element parent, bool isRemoved, Node? nodeBeforeChange, Node? nodeAfterChange) {
+
+    if (!isRendererAttached) {
+      return;
+    }
+
+    final elementBeforeChange = nodeBeforeChange as Element?;
+    final elementAfterChange = nodeAfterChange as Element?;
+
+    // :first-child.  In the parser callback case, we don't have to check anything, since we were right the first time.
+    // In the DOM case, we only need to do something if |afterChange| is not 0.
+    // |afterChange| is 0 in the parser case, so it works out that we'll skip this block.
+    if (elementAfterChange != null &&
+        restyleFlags?.contains(DynamicRestyleFlag.ChildrenAffectedByFirstChildRules) == true) {
+      // Find our new first child.
+      final newFirstElement = parent.firstChild as Element?;
+
+      // This is the insert/append case.
+      if (newFirstElement != elementAfterChange && elementAfterChange.isRendererAttached) {
+        elementAfterChange.recalculateStyle();
+      }
+
+      if (newFirstElement != null && isRemoved && newFirstElement == elementAfterChange) {
+        newFirstElement.recalculateStyle();
+      }
+    }
+
+    if (elementBeforeChange != null &&
+        restyleFlags?.contains(DynamicRestyleFlag.ChildrenAffectedByLastChildRules) == true) {
+      // Find our new first child.
+      final newLastElement = parent.lastChild as Element?;
+
+      // This is the insert/append case.
+      if (newLastElement != elementBeforeChange && elementBeforeChange.isRendererAttached) {
+        elementBeforeChange.recalculateStyle();
+      }
+
+      if (newLastElement != null && isRemoved && newLastElement == elementBeforeChange) {
+        newLastElement.recalculateStyle();
+      }
+    }
+
+    // The + selector.  We need to invalidate the first element following the insertion point.  It is the only possible element
+    // that could be affected by this DOM change.
+    if (restyleFlags?.contains(DynamicRestyleFlag.ChildrenAffectedByDirectAdjacentRules) == true && elementAfterChange != null) {
+       elementAfterChange.recalculateStyle();
+    }
+
+    // Forward positional selectors include the ~ selector, nth-child, nth-of-type, first-of-type and only-of-type.
+    // Backward positional selectors include nth-last-child, nth-last-of-type, last-of-type and only-of-type.
+    // We have to invalidate everything following the insertion point in the forward case, and everything before the insertion point in the
+    // backward case.
+    // |afterChange| is 0 in the parser callback case, so we won't do any work for the forward case if we don't have to.
+    // For performance reasons we just mark the parent node as changed, since we don't want to make childrenChanged O(n^2) by crawling all our kids
+    // here. recalcStyle will then force a walk of the children when it sees that this has happened.
+    if (elementAfterChange != null &&
+        restyleFlags?.contains(DynamicRestyleFlag.ChildrenAffectedByForwardPositionalRules) == true) {
+      parent.recalculateStyle();
+    } else if (elementBeforeChange != null &&
+        restyleFlags?.contains(DynamicRestyleFlag.ChildrenAffectedByBackwardPositionalRules) == true) {
+      parent.recalculateStyle();
     }
   }
 
