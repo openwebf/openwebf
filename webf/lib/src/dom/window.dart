@@ -2,8 +2,11 @@
  * Copyright (C) 2019-2022 The Kraken authors. All rights reserved.
  * Copyright (C) 2022-present The WebF authors. All rights reserved.
  */
+import 'dart:math' as math;
+import 'dart:async';
 import 'dart:ui';
 
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:webf/bridge.dart';
 import 'package:webf/dom.dart';
 import 'package:webf/foundation.dart';
@@ -117,6 +120,9 @@ class Window extends EventTarget {
         // Fired at the Document or element when the viewport or element is scrolled, respectively.
         document.documentElement?.addEventListener(eventType, handler, addEventListenerOptions: addEventListenerOptions);
         break;
+      case EVENT_DEVICE_ORIENTATION:
+        _registerGyroscope();
+        break;
     }
   }
 
@@ -127,6 +133,9 @@ class Window extends EventTarget {
       case EVENT_SCROLL:
         document.documentElement?.removeEventListener(eventType, handler);
         break;
+      case EVENT_DEVICE_ORIENTATION:
+        _unRegisterGyroscope(false);
+        break;
     }
   }
 
@@ -134,5 +143,44 @@ class Window extends EventTarget {
   /// https://html.spec.whatwg.org/multipage/interaction.html#dom-window-focus
   void focus() {
     // TODO
+  }
+
+  StreamSubscription<GyroscopeEvent>? _gyroscopeStream;
+  void _registerGyroscope() {
+    _gyroscopeStream ??= gyroscopeEventStream().listen((GyroscopeEvent event) {
+      dispatchDeviceOrientationEvent(event.x, event.y, event.z);
+    },
+      cancelOnError: true,
+    );
+  }
+
+  void _unRegisterGyroscope(bool dispose) {
+    if (dispose || !hasEventListener(EVENT_DEVICE_ORIENTATION)) {
+      _gyroscopeStream?.cancel();
+      _gyroscopeStream = null;
+    }
+  }
+
+  /// Convert gyroscope data obtained in Flutter into rotation angle in the Web
+  /// In the w3c standard:
+  /// alpha: A number representing the motion of the device around the z axis, express in degrees with values ranging from 0 (inclusive) to 360 (exclusive).
+  /// beta: A number representing the motion of the device around the x axis, expressed in degrees with values ranging from -180 (inclusive) to 180 (exclusive).
+  /// gamma: A number representing the motion of the device around the y axis, expressed in degrees with values ranging from -90 (inclusive) to 90 (exclusive).
+  void dispatchDeviceOrientationEvent(x, y, z) {
+    var xAxisAngle= math.atan2(y, z) * (180 / math.pi); // Angle of rotation around the X-axis
+    var yAxisAngle = math.atan2(-x, math.sqrt(y * y + z * z)) * (180 / math.pi); // Rotation angle around Y axis
+    var zAxisAngle = math.atan2(y, z) * (180 / math.pi); // Rotation angle around Z axis
+    var alpha = zAxisAngle + 180;
+    var beta = xAxisAngle;
+    var gamma = yAxisAngle;
+    if (hasEventListener(EVENT_DEVICE_ORIENTATION)) {
+      dispatchEvent(DeviceOrientationEvent(alpha, beta, gamma));
+    }
+  }
+
+  @override
+  void dispose() async {
+    _unRegisterGyroscope(true);
+    super.dispose();
   }
 }

@@ -224,6 +224,7 @@
     "wheel",
     "zoom",
     "intersectionchange",
+    "deviceorientation",
     "gcopen"
   ]
 }

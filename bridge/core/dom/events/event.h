@@ -172,6 +172,7 @@ class Event : public ScriptWrappable {
   virtual bool IsPopstateEvent() const;
   virtual bool IsIntersectionchangeEvent() const;
   virtual bool IsHashChangeEvent() const;
+  virtual bool IsDeviceorientationEvent() const;
 
   // Drag events are a subset of mouse events.
   virtual bool IsDragEvent() const;

@@ -38,6 +38,7 @@
       ]
     },
     "hashchange",
+    "deviceorientation",
     "input",
     {
       "class": "FocusEvent",

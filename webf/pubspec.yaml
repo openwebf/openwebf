@@ -25,6 +25,7 @@ dependencies:
   shared_preferences: 2.2.0 # No AndroidX used.
   archive: ^3.3.7 # Pure dart module.
   web_socket_channel: ^2.2.0
+  sensors_plus: ^4.0.2
 
 dev_dependencies:
   flutter_test:

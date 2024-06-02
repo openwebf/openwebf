@@ -306,6 +306,10 @@ bool Event::IsHashChangeEvent() const {
   return false;
 }
 
+bool Event::IsDeviceorientationEvent() const {
+  return false;
+}
+
 bool Event::IsIntersectionchangeEvent() const {
   return false;
 }
