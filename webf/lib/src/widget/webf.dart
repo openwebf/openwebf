@@ -23,10 +23,10 @@ class WebF extends StatefulWidget {
   final Color? background;
 
   /// the width of webFWidget
-  final double? viewportWidth;
+  double? viewportWidth;
 
   /// the height of webFWidget
-  final double? viewportHeight;
+  double? viewportHeight;
 
   ///  The initial bundle to load.
   final WebFBundle? bundle;
@@ -97,6 +97,8 @@ class WebF extends StatefulWidget {
   /// Remote resources (HTML, CSS, JavaScript, Images, and other content loadable via WebFBundle) can be pre-loaded before WebF is mounted in Flutter.
   /// Use this property to reduce loading times when a WebF application attempts to load external resources on pages.
   final List<WebFBundle>? preloadedBundles;
+
+  bool? isDarkMode = false;
 
   /// The initial cookies to set.
   final List<Cookie>? initialCookies;
@@ -170,6 +172,7 @@ class WebF extends StatefulWidget {
       WebFThread? runningThread,
       this.routeObserver,
       this.initialCookies,
+      this.isDarkMode,
       this.preloadedBundles,
       WebFController? controller,
       // webf's viewportWidth options only works fine when viewportWidth is equal to window.physicalSize.width / window.devicePixelRatio.
@@ -377,32 +380,36 @@ class WebFRootRenderObjectWidget extends MultiChildRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    WebFController controller = _webfWidget.controller ??
-        WebFController(context,
-            name: shortHash(_webfWidget),
-            viewportWidth: _webfWidget.viewportWidth,
-            viewportHeight: _webfWidget.viewportHeight,
-            background: _webfWidget.background,
-            bundle: _webfWidget.bundle,
-            // Execute entrypoint when mount manually.
-            autoExecuteEntrypoint: false,
-            externalController: false,
-            onLoad: _webfWidget.onLoad,
-            onDOMContentLoaded: _webfWidget.onDOMContentLoaded,
-            onLoadError: _webfWidget.onLoadError,
-            onJSError: _webfWidget.onJSError,
-            runningThread: _webfWidget.runningThread,
-            methodChannel: _webfWidget.javaScriptChannel,
-            gestureListener: _webfWidget.gestureListener,
-            navigationDelegate: _webfWidget.navigationDelegate,
-            devToolsService: _webfWidget.devToolsService,
-            httpClientInterceptor: _webfWidget.httpClientInterceptor,
-            onCustomElementAttached: onCustomElementAttached,
-            onCustomElementDetached: onCustomElementDetached,
-            initialCookies: _webfWidget.initialCookies,
-            uriParser: _webfWidget.uriParser,
-            preloadedBundles: _webfWidget.preloadedBundles,
-            resizeToAvoidBottomInsets: resizeToAvoidBottomInsets);
+    WebFController? controller = _webfWidget.controller;
+    if (controller != null) {
+      _webfWidget.viewportWidth ??= controller.viewportSize?.width;
+      _webfWidget.viewportHeight ??= controller.viewportSize?.height;
+      _webfWidget.isDarkMode ??= controller.isDarkMode;
+    } else {
+      controller = WebFController(context,
+          name: shortHash(_webfWidget),
+          isDarkMode: _webfWidget.isDarkMode,
+          background: _webfWidget.background,
+          bundle: _webfWidget.bundle,
+          // Execute entrypoint when mount manually.
+          externalController: false,
+          onLoad: _webfWidget.onLoad,
+          onDOMContentLoaded: _webfWidget.onDOMContentLoaded,
+          onLoadError: _webfWidget.onLoadError,
+          onJSError: _webfWidget.onJSError,
+          runningThread: _webfWidget.runningThread,
+          methodChannel: _webfWidget.javaScriptChannel,
+          gestureListener: _webfWidget.gestureListener,
+          navigationDelegate: _webfWidget.navigationDelegate,
+          devToolsService: _webfWidget.devToolsService,
+          httpClientInterceptor: _webfWidget.httpClientInterceptor,
+          onCustomElementAttached: onCustomElementAttached,
+          onCustomElementDetached: onCustomElementDetached,
+          initialCookies: _webfWidget.initialCookies,
+          uriParser: _webfWidget.uriParser,
+          preloadedBundles: _webfWidget.preloadedBundles,
+          resizeToAvoidBottomInsets: resizeToAvoidBottomInsets);
+    }
 
     (context as _WebFRenderObjectElement).controller = controller;
 
@@ -412,7 +419,7 @@ class WebFRootRenderObjectWidget extends MultiChildRenderObjectWidget {
     OnControllerCreated? onControllerCreated = _webfWidget.onControllerCreated;
     if (onControllerCreated != null) {
       controller.controlledInitCompleter.future.then((_) {
-        onControllerCreated(controller);
+        onControllerCreated(controller!);
       });
     }
 

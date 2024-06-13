@@ -903,6 +903,7 @@ class WebFController {
 
   final ui.FlutterView ownerFlutterView;
   bool resizeToAvoidBottomInsets;
+  bool? isDarkMode = false;
 
   String? _name;
 
@@ -939,6 +940,8 @@ class WebFController {
   // The kraken view entrypoint bundle.
   WebFBundle? _entrypoint;
   WebFBundle? get entrypoint => _entrypoint;
+  ui.Size? _viewportSize;
+  ui.Size? get viewportSize => _viewportSize;
 
   final WebFThread runningThread;
 
@@ -950,11 +953,7 @@ class WebFController {
 
   WebFController(BuildContext context, {
     String? name,
-    double? viewportWidth,
-    double? viewportHeight,
-    bool showPerformanceOverlay = false,
     bool enableDebug = false,
-    bool autoExecuteEntrypoint = true,
     Color? background,
     GestureListener? gestureListener,
     WebFNavigationDelegate? navigationDelegate,
@@ -965,6 +964,7 @@ class WebFController {
     this.onCustomElementDetached,
     this.onLoad,
     this.onDOMContentLoaded,
+    this.isDarkMode,
     this.onLoadError,
     this.onJSError,
     this.httpClientInterceptor,
@@ -1239,6 +1239,7 @@ class WebFController {
     if (_preloadStatus != PreloadingStatus.none) return;
     if (_preRenderingStatus != PreRenderingStatus.none) return;
 
+    _viewportSize = viewportSize;
     // Update entrypoint.
     _entrypoint = bundle;
     _replaceCurrentHistory(bundle);
@@ -1255,6 +1256,8 @@ class WebFController {
       WebFProfiler.instance.startTrackUICommand();
     }
 
+    view.document.preloadDarkMode = isDarkMode;
+    view.document.preloadViewportSize = _viewportSize;
     // Manually initialize the root element and create renderObjects for each elements.
     view.document.documentElement!.applyStyle(view.document.documentElement!.style);
     view.document.documentElement!.createRenderer();

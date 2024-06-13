@@ -57,6 +57,7 @@ class LinkElement extends Element {
     attributes['rel'] = ElementAttributeProperty(setter: (value) => rel = attributeToProperty<String>(value));
     attributes['href'] = ElementAttributeProperty(setter: (value) => href = attributeToProperty<String>(value));
     attributes['type'] = ElementAttributeProperty(setter: (value) => type = attributeToProperty<String>(value));
+    attributes['media'] = ElementAttributeProperty(setter: (value) => media = attributeToProperty<String>(value));
   }
 
   @override
@@ -68,6 +69,7 @@ class LinkElement extends Element {
     properties['rel'] = BindingObjectProperty(getter: () => rel, setter: (value) => rel = castToType<String>(value));
     properties['href'] = BindingObjectProperty(getter: () => href, setter: (value) => href = castToType<String>(value));
     properties['type'] = BindingObjectProperty(getter: () => type, setter: (value) => type = castToType<String>(value));
+    properties['media'] = BindingObjectProperty(getter: () => media, setter: (value) => media = castToType<String>(value));
   }
 
   bool get disabled => getAttribute('disabled') != null;
@@ -100,6 +102,13 @@ class LinkElement extends Element {
   set type(String value) {
     internalSetAttribute('type', value);
   }
+
+  String get media => getAttribute('media') ?? '';
+
+  set media(String value) {
+    internalSetAttribute('media', value);
+  }
+
   Future<void> _resolveHyperlink() async {
     String? href = getAttribute('href');
     String? rel = getAttribute('rel');
@@ -139,6 +148,9 @@ class LinkElement extends Element {
         rel == _REL_STYLESHEET &&
         isConnected &&
         !_stylesheetLoaded.containsKey(_resolvedHyperlink.toString())) {
+      if (!isValidMedia(media)) {
+        return;
+      }
 
       // Increase the pending count for preloading resources.
       if (ownerDocument.controller.preloadStatus != PreloadingStatus.none) {
@@ -167,7 +179,8 @@ class LinkElement extends Element {
           WebFProfiler.instance.startTrackUICommandStep('Style.parseCSS');
         }
 
-        _styleSheet = CSSParser(cssString, href: href).parse();
+        _styleSheet = CSSParser(cssString, href: href)
+            .parse(windowWidth: windowWidth, windowHeight: windowHeight, isDarkMode: isDarkMode);
         _styleSheet?.href = href;
 
         if (enableWebFProfileTracking) {
@@ -204,6 +217,18 @@ class LinkElement extends Element {
     }
   }
 
+  double get windowWidth {
+    return ownerDocument.viewport?.viewportSize.width ?? ownerDocument.preloadViewportSize?.width ?? -1;
+  }
+
+  double get windowHeight {
+    return ownerDocument.viewport?.viewportSize.height ?? ownerDocument.preloadViewportSize?.height ?? -1;
+  }
+
+  bool get isDarkMode {
+    return ownerDocument.viewport?.controller.isDarkMode ?? ownerDocument.preloadDarkMode ?? false;
+  }
+
   @override
   void connectedCallback() {
     super.connectedCallback();
@@ -220,6 +245,72 @@ class LinkElement extends Element {
       ownerDocument.styleNodeManager.removePendingStyleSheet(_styleSheet!);
     }
     ownerDocument.styleNodeManager.removeStyleSheetCandidateNode(this);
+  }
+
+  //https://www.w3schools.com/cssref/css3_pr_mediaquery.php
+  //https://www.w3school.com.cn/cssref/pr_mediaquery.asp
+  Map<String, bool> mediaMap = {};
+  bool isValidMedia(String media) {
+    bool isValid = true;
+    if (media.isEmpty) {
+      return isValid;
+    }
+    if (mediaMap.containsKey(media)) {
+      return mediaMap[media] ?? isValid;
+    }
+    media = media.toLowerCase();
+    String mediaType = '';
+    String lastOperator = '';
+    Map<String, String> andMap = {};
+    Map<String, String> notMap = {};
+    Map<String, String> onlyMap = {};
+    int startIndex = 0;
+    int conditionStartIndex = 0;
+    for (int index = 0; index < media.length; index++) {
+      int code = media.codeUnitAt(index);
+      if (code == TokenChar.LPAREN) {
+        conditionStartIndex = index;
+      } else if (conditionStartIndex > 0) {
+        if (code == TokenChar.RPAREN) {
+          String condition = media.substring(conditionStartIndex + 1, index).replaceAll(' ', '');
+          List<String> cp = condition.split(':');
+          if (lastOperator == MediaOperator.AND) {
+            andMap[cp[0]] = cp[1];
+          } else if (lastOperator == MediaOperator.ONLY) {
+            onlyMap[cp[0]] = cp[1];
+          } else if (lastOperator == MediaOperator.NOT) {
+            notMap[cp[0]] = cp[1];
+          }
+          startIndex = index;
+          conditionStartIndex = -1;
+        }
+      } else if (code == TokenChar.SPACE) {
+        String key = media.substring(startIndex, index).replaceAll(' ', '');
+        startIndex = index;
+        if (key == MediaType.ALL || key == MediaType.SCREEN) {
+          mediaType = key;
+        } else if (key == MediaOperator.AND || key == MediaOperator.NOT || key == MediaOperator.ONLY) {
+          lastOperator = key;
+        }
+      }
+    }
+    //mediaType:screen, lastOperator:and, andMap {max-width: 300px}, onlyMap {}, notMap {}
+    // print('mediaType:$mediaType, lastOperator:$lastOperator, andMap $andMap, onlyMap $onlyMap, notMap $notMap');
+    if (mediaType == MediaType.ALL || mediaType == MediaType.SCREEN) {
+      //for onlyMap
+
+      //for notMap
+
+      //for andMap
+      double maxWidthValue = CSSLength.parseLength(andMap['max-width'] ?? '0px', null).value ?? -1;
+      double minWidthValue = CSSLength.parseLength(andMap['min-width'] ?? '0px', null).value ?? -1;
+      // print('windowWidth:$windowWidth, maxWidthValue:$maxWidthValue, minWidthValue:$minWidthValue, ');
+      if (maxWidthValue < windowWidth || minWidthValue > windowWidth) {
+        isValid = false;
+      }
+    }
+    mediaMap[media] = isValid;
+    return isValid;
   }
 }
 
@@ -284,9 +375,9 @@ mixin StyleElementMixin on Element {
     String? text = collectElementChildText();
     if (text != null) {
       if (_styleSheet != null) {
-        _styleSheet!.replace(text);
+         _styleSheet!.replaceSync(text, windowWidth: windowWidth, windowHeight: windowHeight, isDarkMode: isDarkMode);
       } else {
-        _styleSheet = CSSParser(text).parse();
+        _styleSheet = CSSParser(text).parse(windowWidth: windowWidth, windowHeight: windowHeight, isDarkMode: isDarkMode);
       }
       if (_styleSheet != null) {
         ownerDocument.markElementStyleDirty(ownerDocument.documentElement!);
@@ -298,6 +389,18 @@ mixin StyleElementMixin on Element {
     if (enableWebFProfileTracking) {
       WebFProfiler.instance.finishTrackUICommandStep();
     }
+  }
+
+  double get windowWidth {
+    return ownerDocument.preloadViewportSize?.width ?? ownerDocument.viewport?.viewportSize.width ?? -1;
+  }
+
+  double get windowHeight {
+    return ownerDocument.preloadViewportSize?.height ?? ownerDocument.viewport?.viewportSize.height ?? -1;
+  }
+
+  bool get isDarkMode {
+    return ownerDocument.preloadDarkMode ?? ownerDocument.viewport?.controller.isDarkMode ?? false;
   }
 
   @override

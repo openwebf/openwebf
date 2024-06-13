@@ -5,6 +5,7 @@
 import 'dart:collection';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:webf/css.dart';
@@ -145,6 +146,23 @@ class Document extends ContainerNode {
   EventTarget? get parentEventTarget => defaultView;
 
   RenderViewportBox? get viewport => controller.view.viewport;
+
+  ui.Size? _preloadViewportSize;
+
+  set preloadViewportSize(viewportSize) {
+    _preloadViewportSize = viewportSize;
+  }
+
+  ui.Size? get preloadViewportSize => _preloadViewportSize;
+
+  bool? _preloadDarkMode;
+
+  set preloadDarkMode(isDarkMode) {
+    _preloadDarkMode = isDarkMode;
+  }
+
+  bool? get preloadDarkMode => _preloadDarkMode;
+
 
   @override
   Document get ownerDocument => this;

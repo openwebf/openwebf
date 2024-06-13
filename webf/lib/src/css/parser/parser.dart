@@ -87,8 +87,8 @@ class CSSParser {
   }
 
   /// Main entry point for parsing an entire CSS file.
-  CSSStyleSheet parse() {
-    final rules = parseRules();
+  CSSStyleSheet parse({double? windowWidth, double? windowHeight, bool? isDarkMode}) {
+    final rules = parseRules(windowWidth: windowWidth, windowHeight: windowHeight, isDarkMode: isDarkMode);
     return CSSStyleSheet(rules);
   }
 
@@ -132,12 +132,21 @@ class CSSParser {
     return style;
   }
 
-  List<CSSRule> parseRules({int startPosition = 0}) {
+  List<CSSRule> parseRules({double? windowWidth, double? windowHeight, bool? isDarkMode}) {
     var rules = <CSSRule>[];
     while (!_maybeEat(TokenKind.END_OF_FILE)) {
       final data = processRule();
       if (data != null) {
-        rules.addAll(data);
+        for (CSSRule cssRule in data) {
+          if (cssRule is CSSMediaDirective) {
+            List<CSSRule>? mediaRules = cssRule.getValidMediaRules(windowWidth, windowHeight, isDarkMode ?? false);
+            if (mediaRules != null) {
+              rules.addAll(mediaRules);
+            }
+          } else {
+            rules.add(cssRule);
+          }
+        }
       } else {
         _next();
       }
@@ -265,6 +274,80 @@ class CSSParser {
     return start.expand(_previousToken!.span);
   }
 
+  ///////////////////////////////////////////////////////////////////
+  // Top level productions
+  ///////////////////////////////////////////////////////////////////
+
+  CSSMediaQuery? processMediaQuery() {
+    // Grammar: [ONLY | NOT]? S* media_type S*
+    //          [ AND S* MediaExpr ]* | MediaExpr [ AND S* MediaExpr ]*
+
+    var start = _peekToken.span;
+
+    // Is it a unary media operator?
+    // @media only screen
+    var op = _peekToken.text; //only
+    var opLen = op.length;
+    var unaryOp = TokenKind.matchMediaOperator(op, 0, opLen);
+    if (unaryOp != -1) {
+      _next();
+      start = _peekToken.span;
+    }
+
+    Identifier? type;
+    // Get the media type.
+    if (_peekIdentifier()) type = identifier(); // screen
+
+    var exprs = <CSSMediaExpression>[];
+
+    while (true) {
+      // Parse AND if query has a media_type or previous expression.
+      if (exprs.isEmpty && type == null) {
+        op = MediaOperator.AND;
+      } else {
+        var andOp = exprs.isNotEmpty || type != null;
+        if (andOp) {
+          op = _peekToken.text; // and
+          opLen = op.length;
+          int matchMOP = TokenKind.matchMediaOperator(op, 0, opLen);
+          if (matchMOP != TokenKind.MEDIA_OP_AND && matchMOP != TokenKind.MEDIA_OP_OR) {
+            break;
+          }
+          _next();
+        }
+      }
+      var expr = processMediaExpression(op);
+      if (expr == null) break;
+
+      exprs.add(expr);
+    }
+
+    if (unaryOp != -1 || type != null || exprs.isNotEmpty) {
+      return CSSMediaQuery(unaryOp, type, exprs);
+    }
+    return null;
+  }
+
+  CSSMediaExpression? processMediaExpression([String op = MediaOperator.AND]) {
+    var start = _peekToken.span;
+    // Grammar: '(' S* media_feature S* [ ':' S* expr ]? ')' S*
+    if (_maybeEat(TokenKind.LPAREN)) {
+      if (_peekIdentifier()) {
+        var feature = identifier().name;
+        String text = '';
+        if (_maybeEat(TokenKind.COLON)) {
+          do {
+            text += _next().text;
+          } while(!_maybeEat(TokenKind.RPAREN));
+          return CSSMediaExpression(op, {feature : text});
+        }
+      } else if (isChecked) {
+        _warning('Missing media feature in media expression', location: _makeSpan(start));
+      }
+    }
+    return null;
+  }
+
   /// Directive grammar:
   ///
   ///     import:             '@import' [string | URI] media_list?
@@ -293,10 +376,28 @@ class CSSParser {
         return null;
 
       case TokenKind.DIRECTIVE_MEDIA:
-        while (!_maybeEat(TokenKind.END_OF_FILE) && !_maybeEat(TokenKind.RBRACE)) {
+        _next();
+        // print('processDirective CSSMediaDirective start -----  TokenKind.DIRECTIVE_MEDIA');
+        CSSMediaQuery? cssMediaQuery = processMediaQuery();
+        if (cssMediaQuery != null) {
           _next();
         }
-        return null;
+        List<CSSRule>? rules = [];
+        do {
+          List<CSSRule>? rule = processRule();
+          if (rule != null) {
+            rules.addAll(rule);
+          }
+        } while (!_maybeEat(TokenKind.RBRACE));
+        // rules.forEach((rule) {
+        //   if (rule is CSSStyleRule) {
+        //     print(' ----> processDirective CSSMediaDirective forEach ${rule.selectorGroup.selectorText}, color ${rule.declaration.getPropertyValue('color')}');
+        //   } else {
+        //     print(' ----> processDirective CSSMediaDirective forEach ${rule.runtimeType}');
+        //   }
+        // });
+        // print('processDirective CSSMediaDirective end -----   rules ${rules.length}  TokenKind.DIRECTIVE_MEDIA');
+        return CSSMediaDirective(cssMediaQuery, rules);
       case TokenKind.DIRECTIVE_HOST:
         _next();
 

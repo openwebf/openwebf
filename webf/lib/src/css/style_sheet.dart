@@ -23,8 +23,8 @@ class CSSStyleSheet implements StyleSheet, Comparable {
 
   CSSStyleSheet(this.cssRules, {this.disabled = false, this.href});
 
-  insertRule(String text, int index) {
-    List<CSSRule> rules = CSSParser(text).parseRules();
+  insertRule(String text, int index, {required double windowWidth, required double windowHeight, required bool isDarkMode}) {
+    List<CSSRule> rules = CSSParser(text).parseRules(windowWidth: windowWidth, windowHeight: windowHeight, isDarkMode: isDarkMode);
     cssRules.addAll(rules);
   }
 
@@ -34,15 +34,15 @@ class CSSStyleSheet implements StyleSheet, Comparable {
   }
 
   /// Synchronously replaces the content of the stylesheet with the content passed into it.
-  replaceSync(String text) {
+  replaceSync(String text, {required double windowWidth, required double windowHeight, required bool isDarkMode}) {
     cssRules.clear();
-    List<CSSRule> rules = CSSParser(text).parseRules();
+    List<CSSRule> rules = CSSParser(text).parseRules(windowWidth: windowWidth, windowHeight: windowHeight, isDarkMode: isDarkMode);
     cssRules.addAll(rules);
   }
 
-  Future replace(String text) async {
+  Future replace(String text, {required double windowWidth, required double windowHeight, required bool isDarkMode}) async {
     return Future(() {
-      replaceSync(text);
+      replaceSync(text, windowWidth: windowWidth, windowHeight: windowHeight, isDarkMode: isDarkMode);
     });
   }
 

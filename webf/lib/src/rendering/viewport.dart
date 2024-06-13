@@ -23,6 +23,10 @@ class RenderViewportBox extends RenderBox
 
   WebFController controller;
 
+  bool get isDarkMode {
+    return controller.isDarkMode ?? false;
+  }
+
   @override
   void setupParentData(covariant RenderObject child) {
     child.parentData = RenderViewportParentData();

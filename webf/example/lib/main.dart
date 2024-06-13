@@ -42,9 +42,10 @@ class FirstPageState extends State<FirstPage> {
     super.didChangeDependencies();
     controller = WebFController(
       context,
+      isDarkMode: MediaQuery.of(context).platformBrightness == Brightness.dark,
       devToolsService: ChromeDevToolsService(),
     );
-    controller.preload(WebFBundle.fromUrl('assets:assets/bundle.html'));
+    controller.preload(WebFBundle.fromUrl('assets:assets/bundle.html'), viewportSize: MediaQuery.of(context).size);
   }
 
   @override

@@ -1,51 +1,33 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
-      .container {
-        margin: 64px 0 32px;
-        text-align: center;
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    div.example {
+      background-color: lightblue;
+      padding: 20px;
+    }
+
+    @media only screen and (max-width: 400px) and (min-width: 100px) {
+      div.example {
+        background-color: blue;
       }
-      .logo {
-        width: 128px;
+    }
+
+    @media only screen and (prefers-color-scheme: dark) {
+      div.example {
+        background-color: rosybrown;
       }
-      .p {
-        color: #ff6633;
-        line-height: 1.7em;
-      }
-      @keyframes example {
-        from {
-          background-color: red;
-          width: 100px;
-        }
-        to {
-          background-color: yellow;
-          width: 200px;
-        }
-      }
-      .icons {
-        text-align: center;
-        padding: 8px 0;
-      }
-      .icon {
-        width: 24px;
-        height: 24px;
-        margin-right: 4px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <img class="logo" src="./webf.png" />
-    </div>
-    <div class="icons">
-      <svg class="icon" viewBox="0 0 1024 1024"><path d="M64 512c0 195.2 124.8 361.6 300.8 422.4 22.4 6.4 19.2-9.6 19.2-22.4v-76.8c-134.4 16-140.8-73.6-150.4-89.6-19.2-32-60.8-38.4-48-54.4 32-16 64 3.2 99.2 57.6 25.6 38.4 76.8 32 105.6 25.6 6.4-22.4 19.2-44.8 35.2-60.8-144-22.4-201.6-108.8-201.6-211.2 0-48 16-96 48-131.2-22.4-60.8 0-115.2 3.2-121.6 57.6-6.4 118.4 41.6 124.8 44.8 32-9.6 70.4-12.8 112-12.8 41.6 0 80 6.4 112 12.8 12.8-9.6 67.2-48 121.6-44.8 3.2 6.4 25.6 57.6 6.4 118.4 32 38.4 48 83.2 48 131.2 0 102.4-57.6 188.8-201.6 214.4 22.4 22.4 38.4 54.4 38.4 92.8v112c0 9.6 0 19.2 16 19.2C832 876.8 960 710.4 960 512c0-246.4-201.6-448-448-448S64 265.6 64 512z" fill="#040000" p-id="3824"></path></svg>
-       <img class="icon" src="./js-icon.svg" />
-      <svg class="icon" viewBox="0 0 1024 1024"><path d="M89.088 59.392l62.464 803.84c1.024 12.288 9.216 22.528 20.48 25.6L502.784 993.28c6.144 2.048 12.288 2.048 18.432 0l330.752-104.448c11.264-4.096 19.456-14.336 20.48-25.6l62.464-803.84c1.024-17.408-12.288-31.744-29.696-31.744H118.784c-17.408 0-31.744 14.336-29.696 31.744z" fill="#FC490B" p-id="5421"></path><path d="M774.144 309.248h-409.6l12.288 113.664h388.096l-25.6 325.632-227.328 71.68-227.328-71.68-13.312-169.984h118.784v82.944l124.928 33.792 123.904-33.792 10.24-132.096H267.264L241.664 204.8h540.672z" fill="#FFFFFF" p-id="5422"></path></svg>
-    </div>
-    <script>
-      console.log('Welcome to webf!');
-    </script>
-    <script src="./bundle.js"></script>
-  </body>
+    }
+  </style>
+  <!-- <link rel="stylesheet" media="screen and (max-width: 500px) and (min-width: 200px)" href="http://10.15.48.109:8080/widescreen.css" /> -->
+</head>
+
+<body>
+<div class="example" style="right: 33.1094px; opacity: 1; color: beige">
+  Example DIV.
+</div>
+</body>
+
 </html>

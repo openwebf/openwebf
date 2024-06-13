@@ -194,6 +194,7 @@ class TokenKind {
   static const int MEDIA_OP_ONLY = 665; // Unary.
   static const int MEDIA_OP_NOT = 666; // Unary.
   static const int MEDIA_OP_AND = 667; // Binary.
+  static const int MEDIA_OP_OR = 668; // Binary.
 
   // Directives inside of a @page (margin sym).
   static const int MARGIN_DIRECTIVE_TOPLEFTCORNER = 670;
@@ -250,6 +251,8 @@ class TokenKind {
     {'type': TokenKind.MEDIA_OP_ONLY, 'value': 'only'},
     {'type': TokenKind.MEDIA_OP_NOT, 'value': 'not'},
     {'type': TokenKind.MEDIA_OP_AND, 'value': 'and'},
+    {'type': TokenKind.MEDIA_OP_OR, 'value': 'or'},
+    {'type': TokenKind.MEDIA_OP_OR, 'value': ','},
   ];
 
   static const List<Map<String, dynamic>> MARGIN_DIRECTIVES = [
@@ -546,4 +549,18 @@ class TokenChar {
   static const int MINUS = 0x2d; // "-".codeUnitAt(0)
   static const int BACKSLASH = 0x5c; // "\".codeUnitAt(0)
   static const int AMPERSAND = 0x26; // "&".codeUnitAt(0)
+}
+
+class MediaType {
+  static const String ALL = 'all';
+  static const String PRINT = 'print';
+  static const String SCREEN = 'screen';
+  static const String SPEECH = 'speech';
+}
+class MediaOperator {
+  static const String NOT = 'not';
+  static const String ONLY = 'only';
+  static const String AND = 'and';
+  static const String OR = 'or';
+  static const String OR2 = ',';
 }

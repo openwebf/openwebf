@@ -49,6 +49,8 @@ class RuleSet {
       keyframesRules[rule.name] = rule;
     } else if (rule is CSSFontFaceRule) {
       CSSFontFace.resolveFontFaceRules(rule, ownerDocument.contextId!, baseHref);
+    } else if (rule is CSSMediaDirective) {
+      // doNothing
     } else {
       assert(false, 'Unsupported rule type: ${rule.runtimeType}');
     }
