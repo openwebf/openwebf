@@ -668,7 +668,7 @@ class ImageElement extends Element {
     // Increment count when request.
     ownerDocument.incrementRequestCount();
 
-    final data = await request.obtainImage(ownerDocument.controller);
+    final data = await request.obtainImage(contextId);
 
     // Decrement count when response.
     ownerDocument.decrementRequestCount();
@@ -774,11 +774,9 @@ class ImageRequest {
       state == _ImageRequestState.completelyAvailable ||
       state == _ImageRequestState.partiallyAvailable;
 
-  Future<ImageLoadResponse> obtainImage(WebFController controller) async {
-    final WebFBundle bundle =
-        controller.getPreloadBundleFromUrl(currentUri.toString()) ?? WebFBundle.fromUrl(currentUri.toString());
-    await bundle.resolve(baseUrl: controller.url, uriParser: controller.uriParser);
-    await bundle.obtainData(controller.view.contextId);
+  Future<ImageLoadResponse> obtainImage(double? contextId) async {
+    final WebFBundle bundle = WebFBundle.fromUrl(currentUri.toString());
+    await bundle.resolve(contextId);
 
     if (!bundle.isResolved) {
       throw FlutterError('Failed to load $currentUri');

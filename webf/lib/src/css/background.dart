@@ -260,7 +260,7 @@ class CSSBackgroundImage {
     // Increment count when request.
     controller.view.document.incrementRequestCount();
 
-    ImageLoadResponse data = await request.obtainImage(controller);
+    ImageLoadResponse data = await request.obtainImage(controller.view.contextId);
 
     // Decrement count when response.
     controller.view.document.decrementRequestCount();

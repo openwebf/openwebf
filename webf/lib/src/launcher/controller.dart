@@ -1568,8 +1568,7 @@ class WebFController {
 
     // Resolve the bundle, including network download or other fetching ways.
     try {
-      await bundleToLoad.resolve(baseUrl: url, uriParser: uriParser);
-      await bundleToLoad.obtainData(view.contextId);
+      await bundleToLoad.resolve(view.contextId);
     } catch (e, stack) {
       if (onLoadError != null) {
         onLoadError!(FlutterError(e.toString()), stack);

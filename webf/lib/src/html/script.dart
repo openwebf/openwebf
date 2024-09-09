@@ -155,8 +155,7 @@ class ScriptRunner {
     // Increment count when request.
     _document.incrementDOMContentLoadedEventDelayCount();
     try {
-      await bundle.resolve(baseUrl: _document.controller.url, uriParser: _document.controller.uriParser);
-      await bundle.obtainData(_contextId);
+      await bundle.resolve(_contextId);
 
       if (!bundle.isResolved) {
         throw FlutterError('Network error.');
