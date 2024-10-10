@@ -40,6 +40,8 @@ struct NativeTypeDouble final : public NativeTypeBaseHelper<double> {};
 // JSON
 struct NativeTypeJSON final : public NativeTypeBaseHelper<ScriptValue> {};
 
+struct NativeTypeBytes final : public NativeTypeBaseHelper<uint8_t*> {};
+
 // Array
 template <typename T>
 struct NativeTypeArray final : public NativeTypeBase {

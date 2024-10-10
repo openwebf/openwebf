@@ -14,6 +14,7 @@ declare type LegacyNullToEmptyString = string | null;
 // This property is implemented by Dart side
 type DartImpl<T> = T;
 type StaticMember<T> = T;
+type ImplementedAs<T, S> = T;
 
 
 type DependentsOnLayout<T> = T;

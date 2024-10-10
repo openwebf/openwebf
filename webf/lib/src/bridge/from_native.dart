@@ -94,6 +94,10 @@ typedef DartAsyncModuleCallback = Pointer<NativeValue> Function(
 
 typedef NativeHandleInvokeModuleResult = Void Function(Handle context, Pointer<NativeValue> result);
 
+class InvokeModuleOptions extends Struct {
+  external Pointer<NativeBindingObject> formData;
+}
+
 typedef NativeInvokeModule = Pointer<NativeValue> Function(
     Pointer<Void> callbackContext,
     Double contextId,
@@ -101,6 +105,7 @@ typedef NativeInvokeModule = Pointer<NativeValue> Function(
     Pointer<NativeString> module,
     Pointer<NativeString> method,
     Pointer<NativeValue> params,
+    Uint32 argc,
     Pointer<NativeFunction<NativeAsyncModuleCallback>>);
 
 class _InvokeModuleResultContext {
@@ -208,6 +213,7 @@ Pointer<NativeValue> _invokeModule(
     Pointer<NativeString> module,
     Pointer<NativeString> method,
     Pointer<NativeValue> params,
+    int argc,
     Pointer<NativeFunction<NativeAsyncModuleCallback>> callback) {
 
   BindingOpItem? currentProfileOp;

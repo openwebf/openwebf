@@ -142,6 +142,18 @@ NativeValue Native_NewJSON(JSContext* ctx, const ScriptValue& value, ExceptionSt
 #endif
 }
 
+NativeValue Native_NewBytes(const uint8_t* bytes, uint32_t length) {
+  auto* new_buffer = malloc(sizeof(uint8_t) * length);
+  memcpy(new_buffer, bytes, sizeof(uint8_t) * length);
+
+  NativeValue result = (NativeValue){
+      .u = {.ptr = static_cast<void*>(new_buffer)},
+      .uint32 = length,
+      .tag = NativeTag::TAG_UINT8_BYTES,
+  };
+  return result;
+}
+
 JSPointerType GetPointerTypeOfNativePointer(NativeValue native_value) {
   assert(native_value.tag == NativeTag::TAG_POINTER);
   return static_cast<JSPointerType>(native_value.uint32);

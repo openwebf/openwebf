@@ -1,5 +1,6 @@
 .vscode
 .history
+.cache
 *.log
 *.apk
 *.ap_
@@ -47,6 +48,8 @@ build/
 *.ipr
 *~
 *.swp
+
+**/vendor/** 
 
 # NDK
 obj/

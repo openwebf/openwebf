@@ -483,9 +483,14 @@ function generateReturnValueInit(blob: IDLBlob, type: ParameterType, options: Ge
 }) {
   if (type.value == FunctionArgumentType.void) return '';
 
+
   if (options.isConstructor) {
     return `${getClassName(blob)}* return_value = nullptr;`
   }
+  if (isUnionType(type) && Array.isArray(type.value)) {
+    return `std::shared_ptr<${generateUnionTypeClassName(type.value)}> return_value = nullptr;`;
+  }
+
   if (isPointerType(type)) {
     if (getPointerType(type) === 'Promise') {
       return 'ScriptPromise return_value;';
@@ -579,7 +584,7 @@ export function generateCppSource(blob: IDLBlob, options: GenerateOptions) {
           } else {
             overloadMethods[method.name] = [method];
             filtedMethods.push(method);
-            options.classPropsInstallList.push(`{"${method.name}", ${method.name}, ${method.args.length}}`)
+            options.classPropsInstallList.push(`{"${method.name}", qjs_${method.name}, ${method.args.length}}`)
           }
         }
 
@@ -712,6 +717,7 @@ export function generateUnionTypeSource(unionType: ParameterType): string {
     generateUnionConstructorImpl,
     generateUnionTypeSetter,
     getUnionTypeName,
+    isPointerType,
     isTypeHaveNull,
     isTypeHaveString
   }).split('\n').filter(str => {

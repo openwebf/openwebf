@@ -13,7 +13,7 @@
 
 namespace webf {
 
-enum ErrorType { TypeError, InternalError, RangeError, ReferenceError, SyntaxError };
+enum ErrorType { TypeError, InternalError, RangeError, ReferenceError, SyntaxError,ArgumentError };
 
 // ExceptionState is a scope-like class and provides a way to store an exception.
 class ExceptionState {

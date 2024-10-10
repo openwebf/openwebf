@@ -47,11 +47,12 @@ function genCodeFromTypeDefine() {
   // Generate code from type defines.
   let typeFiles = glob.sync("**/*.d.ts", {
     cwd: source,
+    ignore: ['node_modules/**', 'scripts/**', 'polyfill/**']
   });
 
   let blobs = typeFiles.map(file => {
     let filename = 'qjs_' + file.split('/').slice(-1)[0].replace('.d.ts', '');
-    let implement = file.replace(path.join(__dirname, '../../')).replace('.d.ts', '');
+    let implement = file.replace(path.join(__dirname, '../../../')).replace('.d.ts', '');
     return new IDLBlob(path.join(source, file), dist, filename, implement);
   });
 

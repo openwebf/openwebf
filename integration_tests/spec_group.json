@@ -2,6 +2,7 @@
   {
     "name": "BOM",
     "specs": [
+      "specs/api/**/*.{js,jsx,ts,tsx,html}",
       "specs/async-storage/**/*.{js,jsx,ts,tsx,html}",
       "specs/blob/**/*.{js,jsx,ts,tsx,html}",
       "specs/cookie/**/*.{js,jsx,ts,tsx,html}",

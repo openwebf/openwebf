@@ -5,6 +5,7 @@
 
 #include "member_installer.h"
 #include <quickjs/quickjs.h>
+#include <string>
 #include "core/executing_context.h"
 #include "qjs_engine_patch.h"
 
@@ -67,14 +68,21 @@ void MemberInstaller::InstallAttributes(ExecutingContext* context,
     }
   }
 }
-
+// Defined a placeholder name in FormData to avoid using C++ keyword **delete**.
+const char* fn_form_data_delete="form_data_delete";
 void MemberInstaller::InstallFunctions(ExecutingContext* context,
                                        JSValue root,
                                        std::initializer_list<FunctionConfig> config) {
   JSContext* ctx = context->ctx();
   for (auto& c : config) {
-    JSValue function = JS_NewCFunction(ctx, c.function, c.name, c.length);
-    JS_DefinePropertyValueStr(ctx, root, c.name, function, c.flag);
+    std::string name = c.name;
+
+    // replace the placeholder name to real one.
+    if(c.name==fn_form_data_delete){
+      name = "delete";
+    }
+    JSValue function = JS_NewCFunction(ctx, c.function, name.c_str(), c.length);
+    JS_DefinePropertyValueStr(ctx, root, name.c_str(), function, c.flag);
   }
 }
 

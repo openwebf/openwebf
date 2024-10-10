@@ -6,6 +6,7 @@
 #ifndef BRIDGE_BINDINGS_QJS_CONVERTER_IMPL_H_
 #define BRIDGE_BINDINGS_QJS_CONVERTER_IMPL_H_
 
+#include <memory>
 #include <type_traits>
 #include "atomic_string.h"
 #include "bindings/qjs/union_base.h"
@@ -384,6 +385,7 @@ struct Converter<IDLCallback> : public ConverterBase<IDLCallback> {
   }
 };
 
+
 template <>
 struct Converter<BlobPart> : public ConverterBase<BlobPart> {
   using ImplType = BlobPart::ImplType;
@@ -393,6 +395,12 @@ struct Converter<BlobPart> : public ConverterBase<BlobPart> {
   }
 
   static JSValue ToValue(JSContext* ctx, BlobPart* data) {
+    if (data == nullptr)
+      return JS_NULL;
+
+    return data->ToQuickJS(ctx);
+  }
+    static JSValue ToValue(JSContext* ctx, std::shared_ptr<BlobPart> data) {
     if (data == nullptr)
       return JS_NULL;
 

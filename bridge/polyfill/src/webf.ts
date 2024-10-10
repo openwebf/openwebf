@@ -3,7 +3,7 @@
 * Copyright (C) 2022-present The WebF authors. All rights reserved.
 */
 
-import { addWebfModuleListener, webfInvokeModule, clearWebfModuleListener, removeWebfModuleListener } from './bridge';
+import { addWebfModuleListener, webfInvokeModule, webfInvokeModuleWithOptions, clearWebfModuleListener, removeWebfModuleListener } from './bridge';
 import { methodChannel, triggerMethodCallHandler } from './method-channel';
 import { hybridHistory } from './hybrid-history';
 
@@ -12,6 +12,7 @@ addWebfModuleListener('MethodChannel', (event, data) => triggerMethodCallHandler
 export const webf = {
   methodChannel,
   invokeModule: webfInvokeModule,
+  invokeModuleWithOptions: webfInvokeModuleWithOptions,
   hybridHistory: hybridHistory,
   addWebfModuleListener: addWebfModuleListener,
   clearWebfModuleListener: clearWebfModuleListener,

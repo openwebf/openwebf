@@ -9,7 +9,6 @@
 // Quickjs's linked-list are more efficient than STL forward_list.
 #include <quickjs/list.h>
 #include "module_callback.h"
-#include "module_manager.h"
 
 namespace webf {
 

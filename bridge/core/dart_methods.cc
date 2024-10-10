@@ -45,6 +45,7 @@ NativeValue* DartMethodPointer::invokeModule(bool is_dedicated,
                                              SharedNativeString* moduleName,
                                              SharedNativeString* method,
                                              NativeValue* params,
+                                             uint32_t argc,
                                              AsyncModuleCallback callback) {
 #if ENABLE_LOG
   WEBF_LOG(INFO) << "[Dispatcher] DartMethodPointer::invokeModule callSync START";
@@ -52,13 +53,14 @@ NativeValue* DartMethodPointer::invokeModule(bool is_dedicated,
   NativeValue* result = dart_isolate_context_->dispatcher()->PostToDartSync(
       is_dedicated, context_id,
       [&](bool cancel, void* callback_context, double context_id, int64_t profile_link_id,
-          SharedNativeString* moduleName, SharedNativeString* method, NativeValue* params,
+          SharedNativeString* moduleName, SharedNativeString* method, NativeValue* params, uint32_t argc,
           AsyncModuleCallback callback) -> webf::NativeValue* {
         if (cancel)
           return nullptr;
-        return invoke_module_(callback_context, context_id, profile_link_id, moduleName, method, params, callback);
+        return invoke_module_(callback_context, context_id, profile_link_id, moduleName, method, params, argc,
+                              callback);
       },
-      callback_context, context_id, profile_link_id, moduleName, method, params, callback);
+      callback_context, context_id, profile_link_id, moduleName, method, params, argc, callback);
 
 #if ENABLE_LOG
   WEBF_LOG(INFO) << "[Dispatcher] DartMethodPointer::invokeModule callSync END";

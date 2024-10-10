@@ -430,4 +430,8 @@ bool BindingObject::IsCanvasGradient() const {
   return false;
 }
 
+bool BindingObject::IsFormData() const {
+  return false;
+}
+
 }  // namespace webf

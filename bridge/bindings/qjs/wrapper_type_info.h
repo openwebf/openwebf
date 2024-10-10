@@ -17,6 +17,7 @@ class TouchList;
 // Define all built-in wrapper class id.
 enum {
   JS_CLASS_GC_TRACKER = JS_CLASS_INIT_COUNT + 1,
+  JS_CLASS_SYNC_ITERATOR,
   JS_CLASS_BLOB,
   JS_CLASS_EVENT,
   JS_CLASS_ERROR_EVENT,
@@ -115,7 +116,12 @@ enum {
   JS_CLASS_SVG_LENGTH,
   JS_CLASS_SVG_ANIMATED_LENGTH,
 
+  //
+  JS_CLASS_FORM_DATA,
+
   JS_CLASS_CUSTOM_CLASS_INIT_COUNT /* last entry for predefined classes */
+
+  
 };
 
 // Callback when get property using index.

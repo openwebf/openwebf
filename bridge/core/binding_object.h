@@ -70,7 +70,7 @@ enum BindingMethodCallOperations {
   kAsyncAnonymousFunction,
 };
 
-enum CreateBindingObjectType { kCreateDOMMatrix = 0 };
+enum CreateBindingObjectType { kCreateDOMMatrix = 0, kCreateFormData = 1 };
 
 struct BindingObjectPromiseContext : public DartReadable {
   ExecutingContext* context;
@@ -136,7 +136,7 @@ class BindingObject : public ScriptWrappable {
   virtual bool IsTouchList() const;
   virtual bool IsComputedCssStyleDeclaration() const;
   virtual bool IsCanvasGradient() const;
-
+  virtual bool IsFormData() const;
  protected:
   void TrackPendingPromiseBindingContext(BindingObjectPromiseContext* binding_object_promise_context);
   void FullFillPendingPromise(BindingObjectPromiseContext* binding_object_promise_context);

@@ -179,6 +179,8 @@
     "dir",
     "pageXOffset",
     "pageYOffset",
-    "title"
+    "title",
+    "append",
+    "delete"
   ]
 }

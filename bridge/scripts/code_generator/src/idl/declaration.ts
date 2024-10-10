@@ -34,6 +34,7 @@ export class ParameterMode {
   dartImpl?: boolean;
   layoutDependent?: boolean;
   static?: boolean;
+  secondaryName?: string;
 }
 
 export class PropsDeclaration {

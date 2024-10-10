@@ -262,6 +262,8 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     bindings/qjs/exception_state.cc
     bindings/qjs/exception_message.cc
     bindings/qjs/rejected_promises.cc
+    bindings/qjs/sync_iterator.cc
+    bindings/qjs/iterable.cc
     bindings/qjs/union_base.cc
     # Core sources
     webf_bridge.cc
@@ -378,6 +380,9 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     core/html/forms/html_input_element.cc
     core/html/forms/html_form_element.cc
     core/html/forms/html_textarea_element.cc
+    core/html/forms/form_data.cc
+
+#    core/platform/network/form_data_encoder.cc
 
     # SVG files
     core/svg/svg_element.cc
@@ -412,6 +417,7 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     out/qjs_window.cc
     out/qjs_location.cc
     out/qjs_blob.cc
+    out/qjs_form_data.cc
     out/qjs_event.cc
     out/qjs_add_event_listener_options.cc
     out/qjs_event_listener_options.cc
@@ -496,6 +502,7 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     out/qjs_html_iframe_element.cc
     out/qjs_html_canvas_element.cc
     out/qjs_html_link_element.cc
+    out/qjs_module_manager_options.cc
     out/qjs_image.cc
     out/qjs_widget_element.cc
     out/qjs_canvas_rendering_context_2d.cc
@@ -507,6 +514,7 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     out/qjs_union_dom_string_sequencedouble.cc
     out/qjs_unionhtml_image_elementhtml_canvas_element.cc
     out/qjs_union_dom_stringcanvas_gradient.cc
+    out/qjs_union_dom_stringblob.cc
     out/canvas_types.cc
     out/qjs_html_button_element.cc
     out/qjs_html_input_element.cc
@@ -554,6 +562,7 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     out/qjs_svg_ellipse_element.cc
     out/qjs_svg_style_element.cc
     out/qjs_svg_line_element.cc
+    out/qjs_sync_iterator.cc
     )
 
 

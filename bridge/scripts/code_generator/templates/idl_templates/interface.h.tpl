@@ -1,4 +1,4 @@
-#include "core/<%= blob.implement %>.h"
+#include "<%= blob.implement %>.h"
 
 <% if(parentClassName) { %>
 #include "qjs_<%= _.snakeCase(parentClassName) %>.h"

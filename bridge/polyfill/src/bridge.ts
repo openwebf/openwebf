@@ -6,6 +6,9 @@
 declare const __webf_invoke_module__: (module: string, method: string, params?: any | null, fn?: (err: Error, data: any) => any) => any;
 export const webfInvokeModule = __webf_invoke_module__;
 
+declare const __webf_invoke_module_with_options__: (module: string, method: string, params?: any | null, options?: any, fn?: (err: Error, data: any) => any) => any
+export const webfInvokeModuleWithOptions = __webf_invoke_module_with_options__;
+
 declare const __webf_add_module_listener__: (moduleName: string, fn: (event: Event, extra: any) => any) => void;
 export const addWebfModuleListener = __webf_add_module_listener__;
 

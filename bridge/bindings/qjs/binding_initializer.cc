@@ -8,6 +8,7 @@
 
 #include "qjs_animation_event.h"
 #include "qjs_blob.h"
+#include "qjs_form_data.h"
 #include "qjs_bounding_client_rect.h"
 #include "qjs_canvas_gradient.h"
 #include "qjs_canvas_pattern.h"
@@ -98,6 +99,7 @@
 #include "qjs_ui_event.h"
 #include "qjs_widget_element.h"
 #include "qjs_window.h"
+#include "qjs_sync_iterator.h"
 #include "qjs_window_or_worker_global_scope.h"
 
 namespace webf {
@@ -106,6 +108,7 @@ void InstallBindings(ExecutingContext* context) {
   // Must follow the inheritance order when install.
   // Exp: Node extends EventTarget, EventTarget must be install first.
   QJSWindowOrWorkerGlobalScope::Install(context);
+  QJSSyncIterator::Install(context);
   QJSLocation::Install(context);
   QJSModuleManager::Install(context);
   QJSConsole::Install(context);
@@ -199,6 +202,8 @@ void InstallBindings(ExecutingContext* context) {
   QJSSVGEllipseElement::Install(context);
   QJSSVGStyleElement::Install(context);
   QJSSVGLineElement::Install(context);
+
+  QJSFormData::Install(context);
 
   // Legacy bindings, not standard.
   QJSElementAttributes::Install(context);

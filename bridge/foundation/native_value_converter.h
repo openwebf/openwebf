@@ -100,6 +100,21 @@ struct NativeValueConverter<NativeTypeDouble> : public NativeValueConverterBase<
 };
 
 template <>
+struct NativeValueConverter<NativeTypeBytes> : public NativeValueConverterBase<NativeTypeBytes> {
+  static NativeValue ToNativeValue(ImplType value, uint32_t length) { return Native_NewBytes(value, length); }
+
+  static ImplType FromNativeValue(NativeValue value, uint32_t* length) {
+    if (value.tag == NativeTag::TAG_NULL) {
+      return nullptr;
+    }
+
+    assert(value.tag == NativeTag::TAG_UINT8_BYTES);
+    *length = value.uint32;
+    return static_cast<uint8_t*>(value.u.ptr);
+  }
+};
+
+template <>
 struct NativeValueConverter<NativeTypeJSON> : public NativeValueConverterBase<NativeTypeJSON> {
   static NativeValue ToNativeValue(JSContext* ctx, ImplType value, ExceptionState& exception_state) {
     return Native_NewJSON(ctx, value, exception_state);
