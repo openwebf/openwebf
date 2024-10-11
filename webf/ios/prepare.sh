@@ -1,12 +1,12 @@
-ROOT=$(pwd)/Frameworks
-cd $ROOT
+read_version() {
+  VERSION_STR=$(cat webf.podspec | grep s.version | awk '{print $3}')
+  END_POS=$(echo ${#VERSION_STR} - 2 | bc)
+  export VERSION=${VERSION_STR:1:$END_POS}
+}
 
-if [ -L "webf_bridge.xcframework" ]; then
-  rm webf_bridge.xcframework
-  ln -s $ROOT/../../../bridge/build/ios/framework/webf_bridge.xcframework
-fi
+ROOT=$(pwd)
 
-if [ -L "quickjs.xcframework" ]; then
-  rm quickjs.xcframework
-  ln -s $ROOT/../../../bridge/build/ios/framework/quickjs.xcframework
+if [ -L "libwebf.a" ]; then
+  rm libwebf.a
+  ln -s $ROOT/../../bridge/build/ios/lib/libwebf.a
 fi

@@ -139,6 +139,7 @@
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				04B5E4929C114343287B36F4 /* [CP] Embed Pods Frameworks */,
+				1B56FC4C2C6AD9B000E64783 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -213,6 +214,23 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		1B56FC4C2C6AD9B000E64783 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/bash\nset -e\n\necho \"Starting the symbol stripping process...\"\n\nif [ \"Release\" = \"${CONFIGURATION}\" ]; then\n  echo \"Configuration is Release.\"\n  \n  # Path to the app directory\n  APP_DIR_PATH=\"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_FOLDER_PATH}\"\n  echo \"App directory path: ${APP_DIR_PATH}\"\n\n  # Strip main binary\n  echo \"Stripping main binary: ${APP_DIR_PATH}/${EXECUTABLE_NAME}\"\n  strip -rSTx \"${APP_DIR_PATH}/${EXECUTABLE_NAME}\"\n  if [ $? -eq 0 ]; then\n    echo \"Successfully stripped main binary.\"\n  else\n    echo \"Failed to strip main binary.\" >&2\n  fi\n\n  # Path to the Frameworks directory\n  APP_FRAMEWORKS_DIR=\"${APP_DIR_PATH}/Frameworks\"\n  echo \"Frameworks directory path: ${APP_FRAMEWORKS_DIR}\"\n\n  # Strip symbols from frameworks, if Frameworks/ exists at all\n  # ... as long as the framework is NOT signed by Apple\n  if [ -d \"${APP_FRAMEWORKS_DIR}\" ]; then\n    echo \"Frameworks directory exists. Proceeding to strip symbols from frameworks.\"\n    find \"${APP_FRAMEWORKS_DIR}\" -type f -perm +111 -maxdepth 2 -mindepth 2 -exec bash -c '\n    codesign -v -R=\"anchor apple\" \"{}\" &> /dev/null ||\n    (\n        echo \"Stripping {}\" &&\n        if [ -w \"{}\" ]; then\n            strip -rSTx \"{}\"\n            if [ $? -eq 0 ]; then\n                echo \"Successfully stripped {}\"\n            else\n                echo \"Failed to strip {}\" >&2\n            fi\n        else\n            echo \"Warning: No write permission for {}\"\n        fi\n    )\n    ' \\;\n    if [ $? -eq 0 ]; then\n        echo \"Successfully stripped symbols from frameworks.\"\n    else\n        echo \"Failed to strip symbols from some frameworks.\" >&2\n    fi\n  else\n    echo \"Frameworks directory does not exist. Skipping framework stripping.\"\n  fi\nelse\n  echo \"Configuration is not Release. Skipping symbol stripping.\"\nfi\n\necho \"Symbol stripping process completed.\"\n";
 		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -306,7 +324,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -330,7 +348,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -387,7 +405,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -411,7 +429,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -442,7 +460,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -466,7 +484,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

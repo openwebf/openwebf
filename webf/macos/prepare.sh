@@ -6,12 +6,7 @@ read_version() {
 
 ROOT=$(pwd)
 
-if [ -L "libwebf.dylib" ]; then
-  rm libwebf.dylib
-  ln -s $ROOT/../../bridge/build/macos/lib/x86_64/libwebf.dylib
-fi
-
-if [ -L "libquickjs.dylib" ]; then
-  rm libquickjs.dylib
-  ln -s $ROOT/../../bridge/build/macos/lib/x86_64/libquickjs.dylib
+if [ -L "libwebf.a" ]; then
+  rm libwebf.a
+  ln -s $ROOT/../../bridge/build/macos/lib/x86_64/libwebf.a
 fi

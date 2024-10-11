@@ -56,7 +56,7 @@ if(NOT MSVC)
 endif()
 
 list(APPEND WEBF_PUBLIC_HEADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/webf_bridge.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/webf_bridge.h
 )
 
 set(QUICKJS_PUBLIC_HEADERS
@@ -150,9 +150,15 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     OUTPUT_VARIABLE QUICKJS_VERSION
   )
 
-  add_library(modb STATIC
-    third_party/modp_b64/modp_b64.cc
-  )
+  if(${STATIC})
+    add_library(modb OBJECT
+      third_party/modp_b64/modp_b64.cc
+    )
+  else ()
+    add_library(modb STATIC
+      third_party/modp_b64/modp_b64.cc
+    )
+  endif()
 
   if (NOT MSVC)
     list(APPEND QUICK_JS_SOURCE third_party/quickjs/src/libbf.c)
@@ -206,7 +212,7 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     add_definitions(-DDDEBUG)
   endif ()
 
-  if(${STATIC_QUICKJS})
+  if(${STATIC})
     add_library(quickjs STATIC ${QUICK_JS_SOURCE})
   else()
     add_library(quickjs SHARED ${QUICK_JS_SOURCE})
@@ -239,6 +245,9 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
   list(APPEND BRIDGE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/modp_b64/include)
   list(APPEND BRIDGE_LINK_LIBS quickjs)
   list(APPEND BRIDGE_LINK_LIBS modb)
+  if (${STATIC})
+    list(APPEND BRIDGE_LINK_LIBS mimalloc-obj)
+  endif()
 
   list(APPEND BRIDGE_SOURCE
     # Binding files
@@ -570,8 +579,11 @@ list(APPEND PUBLIC_HEADER
   include/webf_bridge.h
 )
 
-add_library(webf SHARED ${BRIDGE_SOURCE})
-add_library(webf_static STATIC ${BRIDGE_SOURCE})
+if(${STATIC})
+  add_library(webf STATIC ${BRIDGE_SOURCE} ${GUMBO_PARSER} ${QUICK_JS_SOURCE})
+else()
+  add_library(webf SHARED ${BRIDGE_SOURCE})
+endif()
 
 if(MSVC)
   target_compile_options(webf PRIVATE /JMC)
@@ -612,12 +624,6 @@ if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs" AND NOT MSVC)
   endif ()
 endif ()
 
-### webfStatic
-target_include_directories(webf_static PRIVATE
-  ${BRIDGE_INCLUDE}
-  ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ./include)
-target_link_libraries(webf_static ${BRIDGE_LINK_LIBS})
-
 execute_process(
   COMMAND node get_app_ver.js
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/scripts
@@ -639,13 +645,16 @@ if (${ENABLE_TEST})
 endif ()
 
 if (DEFINED ENV{LIBRARY_OUTPUT_DIR})
-  set_target_properties(webf
-    PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "$ENV{LIBRARY_OUTPUT_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY "$ENV{LIBRARY_OUTPUT_DIR}"
-  )
-  set_target_properties(webf_static
-    PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "$ENV{LIBRARY_OUTPUT_DIR}")
+  if(${STATIC})
+    set_target_properties(webf
+      PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "$ENV{LIBRARY_OUTPUT_DIR}")
+  else()
+    set_target_properties(webf
+      PROPERTIES
+      LIBRARY_OUTPUT_DIRECTORY "$ENV{LIBRARY_OUTPUT_DIR}"
+      RUNTIME_OUTPUT_DIRECTORY "$ENV{LIBRARY_OUTPUT_DIR}"
+    )
+  endif()
 
   if ($ENV{WEBF_JS_ENGINE} MATCHES "quickjs")
     set_target_properties(quickjs
@@ -663,21 +672,8 @@ elseif (IS_ANDROID)
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "iOS")
-  set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO")
-  set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "")
-
-  set_target_properties(webf PROPERTIES
-    OUTPUT_NAME webf_bridge
-    FRAMEWORK TRUE
-    FRAMEWORK_VERSION C
-    MACOSX_FRAMEWORK_IDENTIFIER com.openwebf.webf-bridge
-    MACOSX_FRAMEWORK_BUNDLE_VERSION 1.0
-    MACOSX_FRAMEWORK_SHORT_VERSION_STRING 1.0
-    PUBLIC_HEADER ${WEBF_PUBLIC_HEADERS}
-    )
-
   # If quickjs is static, there will be no quickjs.framework any more.
-  if(NOT DEFINED STATIC_QUICKJS)
+  if(NOT DEFINED STATIC)
     set_target_properties(quickjs PROPERTIES
       OUTPUT_NAME quickjs
       FRAMEWORK TRUE

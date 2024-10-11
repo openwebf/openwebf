@@ -53,7 +53,11 @@ abstract class WebFDynamicLibrary {
   static DynamicLibrary? _ref;
   static DynamicLibrary get ref {
     DynamicLibrary? nativeDynamicLibrary = _ref;
-    _ref = nativeDynamicLibrary ??= DynamicLibrary.open(join(_dynamicLibraryPath, _nativeDynamicLibraryName));
+    if (Platform.isMacOS || Platform.isIOS) {
+      _ref = nativeDynamicLibrary ??= DynamicLibrary.executable();
+    } else {
+      _ref = nativeDynamicLibrary ??= DynamicLibrary.open(join(_dynamicLibraryPath, _nativeDynamicLibraryName));
+    }
     return nativeDynamicLibrary;
   }
 

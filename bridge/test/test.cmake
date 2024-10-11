@@ -54,7 +54,6 @@ target_compile_definitions(webf_unit_test PUBLIC -DFLUTTER_BACKEND=0)
 target_compile_definitions(webf_unit_test PUBLIC -DSPEC_FILE_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(webf_unit_test PUBLIC -DUNIT_TEST=1)
 
-target_compile_definitions(webf_static PUBLIC -DFLUTTER_BACKEND=1)
 if (DEFINED ENV{LIBRARY_OUTPUT_DIR})
   set_target_properties(webf_unit_test
           PROPERTIES

@@ -17,7 +17,7 @@ const os = require('os');
 const uploader = require('./utils/uploader');
 
 program
-.option('--static-quickjs', 'Build quickjs as static library and bundled into webf library.', false)
+.option('--static', 'Build as static library and bundled everything into libwebf.a library.', false)
 .option('--enable-log', 'Enable log printing')
 .parse(process.argv);
 
@@ -90,6 +90,9 @@ task('build-darwin-webf-lib', done => {
     buildType = 'RelWithDebInfo';
   }
 
+  // Bundle quickjs into webf.
+  externCmakeArgs.push('-DSTATIC=true');
+
   if (isProfile) {
     externCmakeArgs.push('-DENABLE_PROFILE=TRUE');
   }
@@ -100,11 +103,6 @@ task('build-darwin-webf-lib', done => {
 
   if (process.env.USE_SYSTEM_MALLOC === 'true') {
     externCmakeArgs.push('-DUSE_SYSTEM_MALLOC=true');
-  }
-
-  // Bundle quickjs into webf.
-  if (program.staticQuickjs) {
-    externCmakeArgs.push('-DSTATIC_QUICKJS=true');
   }
 
   if (program.enableLog) {
@@ -134,13 +132,6 @@ task('build-darwin-webf-lib', done => {
   execSync(`cmake --build ${paths.bridge}/cmake-build-macos-x86_64 --target ${webfTargets.join(' ')} -- -j ${cpus.length}`, {
     stdio: 'inherit'
   });
-
-  const binaryPath = path.join(paths.bridge, `build/macos/lib/x86_64/libwebf.dylib`);
-
-  if (buildMode == 'Release' || buildMode == 'RelWithDebInfo') {
-    execSync(`dsymutil ${binaryPath}`, { stdio: 'inherit' });
-    execSync(`strip -S -X -x ${binaryPath}`, { stdio: 'inherit' });
-  }
 
   done();
 });
@@ -351,9 +342,7 @@ task(`build-ios-webf-lib`, (done) => {
   }
 
   // Bundle quickjs into webf.
-  if (program.staticQuickjs) {
-    externCmakeArgs.push('-DSTATIC_QUICKJS=true');
-  }
+  externCmakeArgs.push('-DSTATIC=true');
 
   if (process.env.USE_SYSTEM_MALLOC === 'true') {
     externCmakeArgs.push('-DUSE_SYSTEM_MALLOC=true');
@@ -433,52 +422,17 @@ task(`build-ios-webf-lib`, (done) => {
     stdio: 'inherit'
   });
 
-  const targetSourceFrameworks = ['webf_bridge'];
-
-  // If quickjs is not static, there will be another framework called quickjs.framework.
-  if (!program.staticQuickjs) {
-    targetSourceFrameworks.push('quickjs');
-  }
+  const targetSourceFrameworks = ['libwebf.a'];
 
   targetSourceFrameworks.forEach(target => {
-    const arm64DynamicSDKPath = path.join(paths.bridge, `build/ios/lib/arm64/${target}.framework`);
-    const simulatorX64DynamicSDKPath = path.join(paths.bridge, `build/ios/lib/simulator_x86/${target}.framework`);
-    const simulatorArm64DynamicSDKPath = path.join(paths.bridge, `build/ios/lib/simulator_arm64/${target}.framework`);
+    const allArchSDKpath = path.join(paths.bridge, `build/ios/lib`);
+    const arm64DynamicSDKPath = path.join(paths.bridge, `build/ios/lib/arm64`);
+    const simulatorX64DynamicSDKPath = path.join(paths.bridge, `build/ios/lib/simulator_x86`);
 
     // Create flat simulator frameworks with multiple archs.
-    execSync(`lipo -create ${simulatorX64DynamicSDKPath}/${target} ${simulatorArm64DynamicSDKPath}/${target} -output ${simulatorX64DynamicSDKPath}/${target}`, {
+    execSync(`lipo -create ${arm64DynamicSDKPath}/${target} ${simulatorX64DynamicSDKPath}/${target} -output ${allArchSDKpath}/${target}`, {
       stdio: 'inherit'
     });
-
-    // CMake generated iOS frameworks does not contains <MinimumOSVersion> key in Info.plist.
-    patchiOSFrameworkPList(simulatorX64DynamicSDKPath);;
-    patchiOSFrameworkPList(arm64DynamicSDKPath);
-
-    const targetDynamicSDKPath = `${paths.bridge}/build/ios/framework`;
-    const frameworkPath = `${targetDynamicSDKPath}/${target}.xcframework`;
-    mkdirp.sync(targetDynamicSDKPath);
-
-    // dSYM file are located at /path/to/webf/build/ios/lib/${arch}/target.dSYM.
-    // Create dSYM for simulator.
-    execSync(`dsymutil ${simulatorX64DynamicSDKPath}/${target} --out ${simulatorX64DynamicSDKPath}/../${target}.dSYM`, { stdio: 'inherit' });
-    // Create dSYM for arm64,armv7.
-    execSync(`dsymutil ${arm64DynamicSDKPath}/${target} --out ${arm64DynamicSDKPath}/../${target}.dSYM`, { stdio: 'inherit' });
-
-    // Generated xcframework at located at /path/to/webf/build/ios/framework/${target}.xcframework.
-    // Generate xcframework with dSYM.
-    if (buildMode === 'RelWithDebInfo') {
-      execSync(`xcodebuild -create-xcframework \
-        -framework ${simulatorX64DynamicSDKPath} -debug-symbols ${simulatorX64DynamicSDKPath}/../${target}.dSYM \
-        -framework ${arm64DynamicSDKPath} -debug-symbols ${arm64DynamicSDKPath}/../${target}.dSYM -output ${frameworkPath}`, {
-        stdio: 'inherit'
-      });
-    } else {
-      execSync(`xcodebuild -create-xcframework \
-        -framework ${simulatorX64DynamicSDKPath} \
-        -framework ${arm64DynamicSDKPath} -output ${frameworkPath}`, {
-        stdio: 'inherit'
-      });
-    }
   });
   done();
 });
