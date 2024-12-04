@@ -11,7 +11,13 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#if WEBF_V8_JS_ENGINE
+//#include "bindings/v8/atomic_string.h"
+#elif WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/script_value.h"
+#endif
+
 #include "foundation/stop_watch.h"
 
 namespace webf {

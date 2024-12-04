@@ -5,9 +5,13 @@
 #ifndef BRIDGE_CONTEXT_DATA_H
 #define BRIDGE_CONTEXT_DATA_H
 
+#if WEBF_V8_JS_ENGINE
+#include <v8/v8.h>
+#elif WEBF_QUICKJS_JS_ENGINE
 #include <quickjs/quickjs.h>
-#include <unordered_map>
 #include "bindings/qjs/wrapper_type_info.h"
+#endif
+#include <unordered_map>
 
 namespace webf {
 
@@ -21,17 +25,21 @@ class ExecutionContextData final {
   ExecutionContextData(const ExecutionContextData&) = delete;
   ExecutionContextData& operator=(const ExecutionContextData&) = delete;
 
+#if WEBF_QUICKJS_JS_ENGINE
   // Returns the constructor object that is appropriately initialized.
   JSValue constructorForType(const WrapperTypeInfo* type);
   // Returns the prototype object that is appropriately initialized.
   JSValue prototypeForType(const WrapperTypeInfo* type);
+#endif
 
   void Dispose();
 
  private:
+#if WEBF_QUICKJS_JS_ENGINE
   JSValue constructorForIdSlowCase(const WrapperTypeInfo* type);
   std::unordered_map<const WrapperTypeInfo*, JSValue> constructor_map_;
   std::unordered_map<const WrapperTypeInfo*, JSValue> prototype_map_;
+#endif
 
   ExecutingContext* m_context;
 };

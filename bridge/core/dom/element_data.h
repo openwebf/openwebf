@@ -6,9 +6,13 @@
 #ifndef WEBF_CORE_DOM_ELEMENT_DATA_H_
 #define WEBF_CORE_DOM_ELEMENT_DATA_H_
 
+#if WEBF_V8_JS_ENGINE
+#include "bindings/v8/atomic_string.h"
+#elif WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/atomic_string.h"
 #include "bindings/qjs/cppgc/gc_visitor.h"
 #include "bindings/qjs/cppgc/member.h"
+#endif
 #include "dom_string_map.h"
 #include "dom_token_list.h"
 

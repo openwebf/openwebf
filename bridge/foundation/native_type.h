@@ -7,8 +7,12 @@
 
 #include <type_traits>
 #include <vector>
+#if WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/qjs_function.h"
 #include "bindings/qjs/script_value.h"
+#else
+#include "bindings/v8/atomic_string.h"
+#endif
 #include "foundation/native_string.h"
 
 namespace webf {
@@ -51,10 +55,10 @@ template <typename T>
 struct NativeTypePointer final : public NativeTypeBaseHelper<T*> {};
 
 // Sync function
-struct NativeTypeFunction final : public NativeTypeBaseHelper<std::shared_ptr<QJSFunction>> {};
+//struct NativeTypeFunction final : public NativeTypeBaseHelper<std::shared_ptr<QJSFunction>> {};
 
 // Async function
-struct NativeTypeAsyncFunction final : public NativeTypeBaseHelper<std::shared_ptr<QJSFunction>> {};
+//struct NativeTypeAsyncFunction final : public NativeTypeBaseHelper<std::shared_ptr<QJSFunction>> {};
 
 }  // namespace webf
 

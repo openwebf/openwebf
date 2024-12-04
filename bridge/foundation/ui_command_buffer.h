@@ -7,7 +7,7 @@
 #define BRIDGE_FOUNDATION_UI_COMMAND_BUFFER_H_
 
 #include <cinttypes>
-#include "bindings/qjs/native_string_utils.h"
+#include "foundation/native_string.h"
 
 namespace webf {
 

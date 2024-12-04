@@ -6,6 +6,7 @@
 #include "core/executing_context.h"
 #include "foundation/logging.h"
 #include "ui_command_buffer.h"
+#include <atomic>
 
 namespace webf {
 
@@ -46,7 +47,7 @@ void SharedUICommand::AddCommand(UICommand type,
 // first called by dart to being read commands.
 void* SharedUICommand::data() {
   // simply spin wait for the swapBuffers to finish.
-  while (is_blocking_writing_.load(std::memory_order::memory_order_acquire)) {
+  while (is_blocking_writing_.load(std::memory_order_acquire)) {
   }
 
   return active_buffer->data();
@@ -120,22 +121,22 @@ void SharedUICommand::SyncToActive() {
   assert(active_buffer->size() == reserve_size + origin_active_size);
 }
 
-void SharedUICommand::swap(std::unique_ptr<UICommandBuffer>& target, std::unique_ptr<UICommandBuffer>& original) {
-  is_blocking_writing_.store(true, std::memory_order::memory_order_release);
+void SharedUICommand::swap(std::unique_ptr<UICommandBuffer>& original, std::unique_ptr<UICommandBuffer>& target) {
+  is_blocking_writing_.store(true, std::memory_order_release);
   std::swap(target, original);
-  is_blocking_writing_.store(false, std::memory_order::memory_order_release);
+  is_blocking_writing_.store(false, std::memory_order_release);
 }
 
-void SharedUICommand::appendCommand(std::unique_ptr<UICommandBuffer>& target,
-                                    std::unique_ptr<UICommandBuffer>& original) {
-  is_blocking_writing_.store(true, std::memory_order::memory_order_release);
-
+void SharedUICommand::appendCommand(std::unique_ptr<UICommandBuffer>& original,
+                                    std::unique_ptr<UICommandBuffer>& target) {
+  is_blocking_writing_.store(true, std::memory_order_release);
+  
   UICommandItem* command_item = original->data();
   target->addCommands(command_item, original->size());
 
   original->clear();
 
-  is_blocking_writing_.store(false, std::memory_order::memory_order_release);
+  is_blocking_writing_.store(false, std::memory_order_release);
 }
 
 }  // namespace webf

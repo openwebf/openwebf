@@ -21,7 +21,7 @@ program
 .option('--enable-log', 'Enable log printing')
 .parse(process.argv);
 
-const SUPPORTED_JS_ENGINES = ['jsc', 'quickjs'];
+const SUPPORTED_JS_ENGINES = ['v8', 'quickjs'];
 const targetJSEngine = process.env.WEBF_JS_ENGINE || 'quickjs';
 
 if (SUPPORTED_JS_ENGINES.indexOf(targetJSEngine) < 0) {
@@ -123,12 +123,12 @@ task('build-darwin-webf-lib', done => {
   });
 
   let webfTargets = ['webf'];
-  if (targetJSEngine === 'quickjs') {
+  if (targetJSEngine === 'quickjs' || targetJSEngine === 'v8') {
     webfTargets.push('webf_unit_test');
   }
-  if (buildMode === 'Debug') {
-    webfTargets.push('webf_test');
-  }
+  // if (buildMode === 'Debug') {
+  //   webfTargets.push('webf_test');
+  // }
 
   let cpus = os.cpus();
   execSync(`cmake --build ${paths.bridge}/cmake-build-macos-x86_64 --target ${webfTargets.join(' ')} -- -j ${cpus.length}`, {
@@ -559,7 +559,7 @@ task('generate-bindings-code', (done) => {
     return done(buildResult.status);
   }
 
-  let compileResult = spawnSync('node', ['bin/code_generator', '-s', '../../core', '-d', '../../out'], {
+  let compileResult = spawnSync('node', ['bin/code_generator', '-s', '../../core', '-d', '../../out', '-p', targetJSEngine], {
     cwd: paths.codeGen,
     env: {
       ...process.env,
@@ -825,6 +825,13 @@ task('run-benchmark', async (done) => {
   }
 
   execSync('adb uninstall com.example.performance_tests');
+
+  done();
+});
+
+task('migrate_to_v8', async (done) => {
+
+
 
   done();
 });

@@ -3,8 +3,10 @@
  * Copyright (C) 2022-present The WebF authors. All rights reserved.
  */
 #include "native_value.h"
+#if WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/qjs_engine_patch.h"
 #include "bindings/qjs/script_value.h"
+#endif
 #include "core/executing_context.h"
 
 namespace webf {
@@ -118,6 +120,8 @@ NativeValue Native_NewList(uint32_t argc, NativeValue* argv) {
 #endif
 }
 
+#if WEBF_QUICKJS_JS_ENGINE
+
 NativeValue Native_NewJSON(JSContext* ctx, const ScriptValue& value, ExceptionState& exception_state) {
   ScriptValue json = value.ToJSONStringify(ctx, &exception_state);
   if (exception_state.HasException()) {
@@ -141,6 +145,8 @@ NativeValue Native_NewJSON(JSContext* ctx, const ScriptValue& value, ExceptionSt
   return result;
 #endif
 }
+
+#endif
 
 JSPointerType GetPointerTypeOfNativePointer(NativeValue native_value) {
   assert(native_value.tag == NativeTag::TAG_POINTER);

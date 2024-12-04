@@ -10,7 +10,11 @@
 #include <atomic>
 #include "bindings/qjs/native_string_utils.h"
 #include "logging.h"
-#include "webf_test_context.h"
+#if WEBF_QUICKJS_JS_ENGINE
+#include "webf_test_context_qjs.h"
+#elif WEBF_V8_JS_ENGINE
+#include "webf_test_context_v8.h"
+#endif
 
 std::unordered_map<int, webf::WebFTestContext*> testContextPool = std::unordered_map<int, webf::WebFTestContext*>();
 

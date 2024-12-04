@@ -5,8 +5,11 @@
 #ifndef BRIDGE_MODULE_CALLBACK_H
 #define BRIDGE_MODULE_CALLBACK_H
 
-#include <quickjs/list.h>
+#if WEBF_V8_JS_ENGINE
+//#include "bindings/v8/qjs_function.h"
+#elif WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/qjs_function.h"
+#endif
 
 namespace webf {
 

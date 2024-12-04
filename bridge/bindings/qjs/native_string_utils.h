@@ -6,7 +6,9 @@
 #ifndef BRIDGE_NATIVE_STRING_UTILS_H
 #define BRIDGE_NATIVE_STRING_UTILS_H
 
+#if WEBF_QUICKJS_JS_ENGINE
 #include <quickjs/quickjs.h>
+#endif
 #include <codecvt>
 #include <locale>
 #include <memory>

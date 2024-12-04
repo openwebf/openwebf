@@ -4,7 +4,7 @@
 
 #include "ui_command_strategy.h"
 #include <math.h>
-#include "core/binding_object.h"
+//#include "core/binding_object.h"
 #include "logging.h"
 #include "shared_ui_command.h"
 

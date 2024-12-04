@@ -5,7 +5,6 @@
 #ifndef BRIDGE_NATIVE_STRING_H
 #define BRIDGE_NATIVE_STRING_H
 
-#include <quickjs/quickjs.h>
 #include <cinttypes>
 #include <cstdlib>
 #include <cstring>

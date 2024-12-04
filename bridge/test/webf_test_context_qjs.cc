@@ -3,7 +3,7 @@
  * Copyright (C) 2022-present The WebF authors. All rights reserved.
  */
 
-#include "webf_test_context.h"
+#include "webf_test_context_qjs.h"
 #include "bindings/qjs/member_installer.h"
 #include "bindings/qjs/qjs_interface_bridge.h"
 #include "core/dom/document.h"

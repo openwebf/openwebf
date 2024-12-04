@@ -199,11 +199,11 @@ void parseHTML(void* page_,
 }
 
 void registerPluginByteCode(uint8_t* bytes, int32_t length, const char* pluginName) {
-  webf::ExecutingContext::plugin_byte_code[pluginName] = webf::NativeByteCode{bytes, length};
+//  webf::ExecutingContext::plugin_byte_code[pluginName] = webf::NativeByteCode{bytes, length};
 }
 
 void registerPluginCode(const char* code, int32_t length, const char* pluginName) {
-  webf::ExecutingContext::plugin_string_code[pluginName] = std::string(code, length);
+//  webf::ExecutingContext::plugin_string_code[pluginName] = std::string(code, length);
 }
 
 static WebFInfo* webfInfo{nullptr};
@@ -221,12 +221,13 @@ WebFInfo* getWebFInfo() {
 }
 
 void* parseSVGResult(const char* code, int32_t length) {
-  auto* result = webf::HTMLParser::parseSVGResult(code, length);
-  return result;
+  return nullptr;
+//  auto* result = webf::HTMLParser::parseSVGResult(code, length);
+//  return result;
 }
 
 void freeSVGResult(void* svgTree) {
-  webf::HTMLParser::freeSVGResult(reinterpret_cast<GumboOutput*>(svgTree));
+//  webf::HTMLParser::freeSVGResult(reinterpret_cast<GumboOutput*>(svgTree));
 }
 
 void invokeModuleEvent(void* page_,
@@ -256,8 +257,8 @@ void collectNativeProfileData(void* ptr, const char** data, uint32_t* len) {
 }
 
 void clearNativeProfileData(void* ptr) {
-  auto* dart_isolate_context = static_cast<webf::DartIsolateContext*>(ptr);
-  dart_isolate_context->profiler()->clear();
+//  auto* dart_isolate_context = static_cast<webf::DartIsolateContext*>(ptr);
+//  dart_isolate_context->profiler()->clear();
 }
 
 void dispatchUITask(void* page_, void* context, void* callback) {
@@ -266,23 +267,26 @@ void dispatchUITask(void* page_, void* context, void* callback) {
 }
 
 void* getUICommandItems(void* page_) {
-  auto page = reinterpret_cast<webf::WebFPage*>(page_);
-  return page->executingContext()->uiCommandBuffer()->data();
+//  auto page = reinterpret_cast<webf::WebFPage*>(page_);
+//  return page->executingContext()->uiCommandBuffer()->data();
+    return nullptr;
 }
 
 uint32_t getUICommandKindFlag(void* page_) {
-  auto page = reinterpret_cast<webf::WebFPage*>(page_);
-  return page->executingContext()->uiCommandBuffer()->kindFlag();
+//  auto page = reinterpret_cast<webf::WebFPage*>(page_);
+//  return page->executingContext()->uiCommandBuffer()->kindFlag();
+  return 0;
 }
 
 int64_t getUICommandItemSize(void* page_) {
-  auto page = reinterpret_cast<webf::WebFPage*>(page_);
-  return page->executingContext()->uiCommandBuffer()->size();
+//  auto page = reinterpret_cast<webf::WebFPage*>(page_);
+//  return page->executingContext()->uiCommandBuffer()->size();
+  return 0;
 }
 
 void clearUICommandItems(void* page_) {
-  auto page = reinterpret_cast<webf::WebFPage*>(page_);
-  page->executingContext()->uiCommandBuffer()->clear();
+//  auto page = reinterpret_cast<webf::WebFPage*>(page_);
+//  page->executingContext()->uiCommandBuffer()->clear();
 }
 
 // Callbacks when dart context object was finalized by Dart GC.

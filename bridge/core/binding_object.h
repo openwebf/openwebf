@@ -9,8 +9,10 @@
 #include <include/dart_api_dl.h>
 #include <cinttypes>
 #include <unordered_set>
+#if WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/atomic_string.h"
 #include "bindings/qjs/script_wrappable.h"
+#endif
 #include "core/dart_methods.h"
 #include "foundation/native_type.h"
 #include "foundation/native_value.h"

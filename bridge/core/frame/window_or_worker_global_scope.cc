@@ -11,8 +11,9 @@ static void handleTimerCallback(DOMTimer* timer, char* errmsg) {
   auto* context = timer->context();
 
   if (errmsg != nullptr) {
-    JSValue exception = JS_ThrowTypeError(context->ctx(), "%s", errmsg);
-    context->HandleException(&exception);
+    // TODO hanle exception
+    //    JSValue exception = JS_ThrowTypeError(context->ctx(), "%s", errmsg);
+    //    context->HandleException(&exception);
     context->Timers()->forceStopTimeoutById(timer->timerId());
     dart_free(errmsg);
     return;
@@ -21,14 +22,14 @@ static void handleTimerCallback(DOMTimer* timer, char* errmsg) {
   if (context->Timers()->getTimerById(timer->timerId()) == nullptr)
     return;
 
-  context->dartIsolateContext()->profiler()->StartTrackAsyncEvaluation();
-  context->dartIsolateContext()->profiler()->StartTrackSteps("handleTimerCallback");
+  //  context->dartIsolateContext()->profiler()->StartTrackAsyncEvaluation();
+  //  context->dartIsolateContext()->profiler()->StartTrackSteps("handleTimerCallback");
 
   // Trigger timer callbacks.
   timer->Fire();
 
-  context->dartIsolateContext()->profiler()->FinishTrackSteps();
-  context->dartIsolateContext()->profiler()->FinishTrackAsyncEvaluation();
+  //  context->dartIsolateContext()->profiler()->FinishTrackSteps();
+  //  context->dartIsolateContext()->profiler()->FinishTrackAsyncEvaluation();
 }
 
 static void handleTransientCallback(void* ptr, double contextId, char* errmsg) {
@@ -51,6 +52,19 @@ static void handleTransientCallback(void* ptr, double contextId, char* errmsg) {
 
   context->Timers()->removeTimeoutById(timer->timerId());
 }
+
+static void handleTransientCallbackWrapper(void* ptr, double contextId, char* errmsg) {
+  auto* timer = static_cast<DOMTimer*>(ptr);
+  auto* context = timer->context();
+
+  if (!context->IsContextValid())
+    return;
+
+  context->dartIsolateContext()->dispatcher()->PostToJs(context->isDedicated(), contextId,
+                                                        webf::handleTransientCallback, ptr, contextId, errmsg);
+}
+
+#if WEBF_QUICKJS_JS_ENGINE
 
 static void handlePersistentCallback(void* ptr, double contextId, char* errmsg) {
   if (!isContextValid(contextId))
@@ -80,17 +94,6 @@ static void handlePersistentCallback(void* ptr, double contextId, char* errmsg) 
   }
 
   timer->SetStatus(DOMTimer::TimerStatus::kFinished);
-}
-
-static void handleTransientCallbackWrapper(void* ptr, double contextId, char* errmsg) {
-  auto* timer = static_cast<DOMTimer*>(ptr);
-  auto* context = timer->context();
-
-  if (!context->IsContextValid())
-    return;
-
-  context->dartIsolateContext()->dispatcher()->PostToJs(context->isDedicated(), contextId,
-                                                        webf::handleTransientCallback, ptr, contextId, errmsg);
 }
 
 static void handlePersistentCallbackWrapper(void* ptr, double contextId, char* errmsg) {
@@ -187,5 +190,37 @@ ScriptValue WindowOrWorkerGlobalScope::__memory_usage__(ExecutingContext* contex
 
   return ScriptValue::CreateJsonObject(context->ctx(), buff, strlen(buff));
 }
+#elif WEBF_V8_JS_ENGINE
+
+int WindowOrWorkerGlobalScope::setTimeout(ExecutingContext* context,
+                                          const v8::MaybeLocal<v8::Function> maybeCallback,
+                                          int32_t timeout,
+                                          ExceptionState& exception) {
+  v8::Local<v8::Function> callback;
+  if (!maybeCallback.ToLocal(&callback)) {
+    exception.ThrowException(context->ctx(), ErrorType::InternalError, "Timeout callback is null");
+    return -1;
+  }
+
+    // Create a timer object to keep track timer callback.
+    auto timer = DOMTimer::create(context, callback, DOMTimer::TimerKind::kOnce);
+    auto timer_id = context->dartMethodPtr()->setTimeout(context->isDedicated(), timer.get(), context->contextId(),
+                                                         handleTransientCallbackWrapper, timeout);
+
+    // Register timerId.
+    timer->setTimerId(timer_id);
+
+    context->Timers()->installNewTimer(context, timer_id, timer);
+
+    return timer_id;
+}
+
+int WindowOrWorkerGlobalScope::setTimeout(ExecutingContext* context,
+                                          const v8::MaybeLocal<v8::Function> maybeCallback,
+                                          ExceptionState& exception) {
+  return setTimeout(context, maybeCallback, 0, exception);
+}
+
+#endif
 
 }  // namespace webf

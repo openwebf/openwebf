@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.10.0)
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3)
 project(WebF)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3)
 # MSBuild are slower than Clang/GCC to support new CXX standards.
 if(MSVC)
   set(CMAKE_CXX_STANDARD 20)
 else()
-  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD 20)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -18,7 +18,13 @@ if(MSVC)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(CMAKE_OSX_ARCHITECTURES "x86_64")
+  elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set(CMAKE_OSX_ARCHITECTURES "arm64")
+  else()
+    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+  endif()
 endif()
 
 set(WEBF_JS_ENGINE $ENV{WEBF_JS_ENGINE})
@@ -59,18 +65,6 @@ list(APPEND WEBF_PUBLIC_HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/include/webf_bridge.h
 )
 
-set(QUICKJS_PUBLIC_HEADERS
-  third_party/quickjs/cutils.h
-  third_party/quickjs/libregexp.h
-  third_party/quickjs/libregexp-opcode.h
-  third_party/quickjs/libunicode.h
-  third_party/quickjs/libunicode-table.h
-  third_party/quickjs/list.h
-  third_party/quickjs/quickjs.h
-  third_party/quickjs/quickjs-atom.h
-  third_party/quickjs/quickjs-opcode.h
-)
-
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   add_compile_options(-fPIC)
 endif()
@@ -83,7 +77,7 @@ endif ()
 if (NOT MSVC) 
   if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     # Avoid quickjs stackoverflow.
-    add_compile_options(-O1)
+#    add_compile_options(-O1)
   endif()
 endif()
 
@@ -96,20 +90,20 @@ endif()
 list(APPEND BRIDGE_SOURCE
   foundation/logging.cc
   foundation/native_string.cc
-  foundation/ui_task_queue.cc
+#  foundation/ui_task_queue.cc
   foundation/shared_ui_command.cc
-  foundation/inspector_task_queue.cc
-  foundation/task_queue.cc
+#  foundation/inspector_task_queue.cc
+#  foundation/task_queue.cc
   foundation/string_view.cc
-  foundation/native_value.cc
-  foundation/native_type.cc
-  foundation/stop_watch.cc
-  foundation/profiler.cc
-  foundation/dart_readable.cc
+#  foundation/native_value.cc
+#  foundation/native_type.cc
+#  foundation/stop_watch.cc
+#  foundation/profiler.cc
+#  foundation/dart_readable.cc
   foundation/rust_readable.cc
-  foundation/ui_command_buffer.cc
-  foundation/ui_command_strategy.cc
-  polyfill/dist/polyfill.cc
+#  foundation/ui_command_buffer.cc
+#  foundation/ui_command_strategy.cc
+#  polyfill/dist/polyfill.cc
   multiple_threading/dispatcher.cc
   multiple_threading/looper.cc
   ${CMAKE_CURRENT_LIST_DIR}/third_party/dart/include/dart_api_dl.c
@@ -142,6 +136,18 @@ list(APPEND BRIDGE_INCLUDE
   )
 
 if (${WEBF_JS_ENGINE} MATCHES "quickjs")
+  set(QUICKJS_PUBLIC_HEADERS
+    third_party/quickjs/cutils.h
+    third_party/quickjs/libregexp.h
+    third_party/quickjs/libregexp-opcode.h
+    third_party/quickjs/libunicode.h
+    third_party/quickjs/libunicode-table.h
+    third_party/quickjs/list.h
+    third_party/quickjs/quickjs.h
+    third_party/quickjs/quickjs-atom.h
+    third_party/quickjs/quickjs-opcode.h
+  )
+
   add_compile_options(-DWEBF_QUICK_JS_ENGINE=1)
 
   execute_process(
@@ -262,7 +268,6 @@ if (${WEBF_JS_ENGINE} MATCHES "quickjs")
   list(APPEND BRIDGE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
   list(APPEND BRIDGE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/modp_b64/include)
   list(APPEND BRIDGE_LINK_LIBS quickjs)
-  list(APPEND BRIDGE_LINK_LIBS modb)
 
   list(APPEND BRIDGE_SOURCE
     # Binding files
@@ -623,8 +628,7 @@ if (${WEBF_JS_ENGINE} MATCHES "quickjs")
     out/plugin_api_transition_event.cc
     out/plugin_api_ui_event.cc
     out/plugin_api_custom_event.cc
-    )
-
+  )
 
   if (NOT MSVC)
   # Quickjs use __builtin_frame_address() to get stack pointer, we should add follow options to get it work with -O2
@@ -633,7 +637,265 @@ if (${WEBF_JS_ENGINE} MATCHES "quickjs")
   endif()
   target_compile_options(quickjs PUBLIC -DCONFIG_VERSION=${\"QUICKJS_VERSION\"})
 
-endif ()
+elseif (${WEBF_JS_ENGINE} MATCHES "v8")
+
+  add_compile_options(-DWEBF_V8_JS_ENGINE=1)
+
+  list(APPEND BRIDGE_SOURCE
+    # Binding files
+    bindings/v8/atomic_string.cc
+    bindings/v8/native_string_utils.cc
+    bindings/v8/script_value.cc
+    bindings/v8/wrapper_type_info.cc
+    bindings/v8/v8_interface_bridge_base.cc
+    bindings/v8/v8_initializer.cc
+    bindings/v8/v8_member_installer.cc
+    bindings/v8/v8_binding_initializer.cc
+    bindings/v8/generated_code_helper.h
+    bindings/v8/exception_state.cc
+    bindings/v8/v8_throw_exception.cc
+    bindings/v8/platform/scoped_persistent.h
+    bindings/v8/platform/v8_per_context_data.cc
+    bindings/v8/platform/v8_per_isolate_data.cc
+    bindings/v8/platform/heap/garbage_collected.h
+    bindings/v8/platform/heap/member.h
+    bindings/v8/platform/heap/self_keep_alive.h
+    bindings/v8/platform/heap/persistent.h
+    bindings/v8/platform/heap/thread_state_storage.cc
+    bindings/v8/platform/heap/write_barrier.h
+    bindings/v8/platform/heap/custom_spaces.cc
+    bindings/v8/platform/util/gc_plugin.h
+    bindings/v8/platform/util/main_thread_util.cc
+    bindings/v8/union_base.cc
+    bindings/v8/name_client.cc
+    bindings/v8/dictionary_base.cc
+    bindings/v8/trace_wrapper_v8_reference.cc
+    bindings/v8/for_build/build_config.h
+    bindings/v8/for_build/buildflag.h
+    bindings/v8/platform/platform_export.h
+    bindings/v8/platform/wtf/dtoa.cc
+    bindings/v8/platform/wtf/stack_util.cc
+    bindings/v8/platform/wtf/atomic_operations.cc
+    bindings/v8/platform/wtf/type_traits.cc
+    bindings/v8/platform/wtf/vector_traits.cc
+    bindings/v8/platform/wtf/hash_traits.h
+    bindings/v8/platform/wtf/hash_functions.h
+    bindings/v8/platform/wtf/hash_table_deleted_value_type.h
+    bindings/v8/platform/wtf/webf_size_t.h
+    bindings/v8/platform/wtf/conditional_destructor.h
+    bindings/v8/platform/wtf/construct_traits.h
+    bindings/v8/platform/wtf/sanitizers.h
+    bindings/v8/base/apple/scoped_cftyperef.h
+    bindings/v8/base/apple/scoped_typeref.h
+    bindings/v8/base/memory/scoped_policy.h
+    bindings/v8/base/threading/platform_thread.cc
+    bindings/v8/base/threading/thread_local_storage.cc
+    bindings/v8/base/containers/checked_iterators.h
+    bindings/v8/base/containers/dynamic_extent.h
+    bindings/v8/base/containers/flat_map.h
+    bindings/v8/base/containers/flat_set.h
+    bindings/v8/base/containers/flat_tree.h
+    bindings/v8/base/containers/util.h
+    bindings/v8/base/numerics/clamped_math.h
+    bindings/v8/base/numerics/clamped_math_impl.h
+    bindings/v8/base/ranges/algorithm.h
+    bindings/v8/base/ranges/functional.h
+    bindings/v8/base/ranges/ranges.h
+    bindings/v8/base/time/time.cc
+    bindings/v8/base/types/to_address.h
+    bindings/v8/base/types/supports_ostream_operator.h
+    bindings/v8/base/base_export.h
+    bindings/v8/base/notreached.h
+    bindings/v8/base/logging_buildflags.h
+    bindings/v8/base/is_empty.h
+    bindings/v8/base/check.h
+    bindings/v8/base/check_op.cc
+    bindings/v8/base/dcheck_is_on.h
+    bindings/v8/base/template_util.h
+    bindings/v8/base/thread_annotations.h
+    bindings/v8/base/location.cc
+    bindings/v8/base/not_fatal_until.h
+    bindings/v8/base/numerics/checked_math.h
+    bindings/v8/base/numerics/safe_conversions.h
+    bindings/v8/base/numerics/safe_conversions_impl.h
+    bindings/v8/base/numerics/safe_conversions_arm_impl.h
+    bindings/v8/base/numerics/safe_math_shared_impl.h
+    bindings/v8/base/numerics/safe_math_clang_gcc_impl.h
+    bindings/v8/base/memory/raw_ptr.h
+    bindings/v8/base/memory/scoped_refptr.h
+    bindings/v8/base/memory/stack_allocated.h
+    bindings/v8/base/compiler_specific.h
+    bindings/v8/base/bit_cast.h
+    bindings/v8/base/bits.h
+    bindings/v8/gin/public/context_holder.h
+    bindings/v8/gin/public/isolate_holder.h
+    bindings/v8/gin/public/gin_embedders.h
+    bindings/v8/gin/public/v8_idle_task_runner.h
+    bindings/v8/gin/public/wrapper_info.h
+    bindings/v8/gin/gin_export.h
+    bindings/v8/gin/per_context_data.cc
+    bindings/v8/gin/context_holder.cc
+
+  )
+
+  # Gen sources.
+  list(APPEND BRIDGE_SOURCE
+    out/built_in_string.cc
+    out/v8_window_or_worker_global_scope.cc
+  )
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_library(v8 SHARED IMPORTED)
+    set_target_properties(v8 PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/third_party/v8/lib/macos/${CMAKE_OSX_ARCHITECTURES}/libv8.dylib")
+    add_library(v8_platform SHARED IMPORTED)
+    set_target_properties(v8_platform PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/third_party/v8/lib/macos/${CMAKE_OSX_ARCHITECTURES}/libv8_libplatform.dylib")
+    list(APPEND BRIDGE_LINK_LIBS v8 v8_platform)
+  endif()
+  list(APPEND BRIDGE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/v8/include/macos/${CMAKE_OSX_ARCHITECTURES})
+  list(APPEND BRIDGE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/v8/include/macos/${CMAKE_OSX_ARCHITECTURES}/v8)
+  list(APPEND BRIDGE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/v8/include/macos/${CMAKE_OSX_ARCHITECTURES}/v8/cppgc)
+  list(APPEND BRIDGE_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/v8/include/macos/${CMAKE_OSX_ARCHITECTURES}/v8/libplatform)
+endif()
+
+#list(APPEND BRIDGE_LINK_LIBS modb)
+
+list(APPEND BRIDGE_SOURCE
+  # Core sources
+  webf_bridge.cc
+  core/api/api.cc
+  core/executing_context.cc
+#  core/script_forbidden_scope.cc
+  core/script_state.cc
+  core/page.cc
+  core/dart_methods.cc
+  core/dart_isolate_context.cc
+#  core/dart_context_data.cc
+#  core/executing_context_data.cc
+#  core/fileapi/blob.cc
+#  core/fileapi/blob_part.cc
+#  core/fileapi/blob_property_bag.cc
+#  core/frame/console.cc
+  core/frame/dom_timer.cc
+  core/frame/dom_timer_coordinator.cc
+  core/frame/window_or_worker_global_scope.cc
+#  core/frame/module_listener.cc
+#  core/frame/module_listener_container.cc
+#  core/frame/module_manager.cc
+#  core/frame/module_callback.cc
+#  core/frame/module_context_coordinator.cc
+#  core/frame/window.cc
+#  core/frame/screen.cc
+#  core/frame/legacy/location.cc
+#  core/timing/performance.cc
+#  core/timing/performance_mark.cc
+#  core/timing/performance_entry.cc
+#  core/timing/performance_measure.cc
+#  core/css/css_style_declaration.cc
+#  core/css/inline_css_style_declaration.cc
+#  core/css/computed_css_style_declaration.cc
+#  core/dom/frame_request_callback_collection.cc
+#  core/dom/events/registered_eventListener.cc
+#  core/dom/events/event_listener_map.cc
+#  core/dom/events/event.cc
+#  core/dom/events/custom_event.cc
+#  core/dom/events/event_target.cc
+#  core/dom/events/event_listener_map.cc
+#  core/dom/events/event_target_impl.cc
+#  core/binding_object.cc
+#  core/dom/node.cc
+#  core/dom/node_list.cc
+#  core/dom/static_node_list.cc
+#  core/dom/node_traversal.cc
+#  core/dom/live_node_list_base.cc
+#  core/dom/character_data.cc
+#  core/dom/comment.cc
+#  core/dom/text.cc
+#  core/dom/tree_scope.cc
+#  core/dom/element.cc
+#  core/dom/parent_node.cc
+#  core/dom/element_data.cc
+#  core/dom/document.cc
+#  core/dom/dom_token_list.cc
+#  core/dom/dom_string_map.cc
+#  core/dom/space_split_string.cc
+#  core/dom/scripted_animation_controller.cc
+#  core/dom/node_data.cc
+#  core/dom/document_fragment.cc
+#  core/dom/child_node_list.cc
+#  core/dom/empty_node_list.cc
+#  core/dom/mutation_observer.cc
+#  core/dom/mutation_observer_registration.cc
+#  core/dom/mutation_observer_interest_group.cc
+#  core/dom/mutation_record.cc
+#  core/dom/child_list_mutation_scope.cc
+#  core/dom/container_node.cc
+#  core/html/custom/widget_element.cc
+#  core/events/error_event.cc
+#  core/events/message_event.cc
+#  core/events/animation_event.cc
+#  core/events/close_event.cc
+#  core/events/ui_event.cc
+#  core/events/focus_event.cc
+#  core/events/gesture_event.cc
+#  core/events/input_event.cc
+#  core/events/touch_event.cc
+#  core/events/mouse_event.cc
+#  core/events/pop_state_event.cc
+#  core/events/pointer_event.cc
+#  core/events/transition_event.cc
+#  core/events/intersection_change_event.cc
+#  core/events/keyboard_event.cc
+#  core/events/promise_rejection_event.cc
+#  core/html/parser/html_parser.cc
+#  core/html/html_element.cc
+#  core/html/html_div_element.cc
+#  core/html/html_head_element.cc
+#  core/html/html_body_element.cc
+#  core/html/html_html_element.cc
+#  core/html/html_template_element.cc
+#  core/html/html_all_collection.cc
+#  core/html/html_anchor_element.cc
+#  core/html/html_image_element.cc
+#  core/html/html_script_element.cc
+#  core/html/html_iframe_element.cc
+#  core/html/html_link_element.cc
+#  core/html/html_unknown_element.cc
+#  core/html/image.cc
+#  core/html/html_collection.cc
+#  core/html/canvas/html_canvas_element.cc
+#  core/html/canvas/canvas_rendering_context.cc
+#  core/html/canvas/canvas_rendering_context_2d.cc
+#  core/html/canvas/canvas_gradient.cc
+#  core/html/canvas/canvas_pattern.cc
+#  core/geometry/dom_matrix.cc
+#  core/geometry/dom_matrix_readonly.cc
+#  core/html/forms/html_button_element.cc
+#  core/html/forms/html_input_element.cc
+#  core/html/forms/html_form_element.cc
+#  core/html/forms/html_textarea_element.cc
+
+  # SVG files
+#  core/svg/svg_element.cc
+#  core/svg/svg_graphics_element.cc
+#  core/svg/svg_geometry_element.cc
+#  core/svg/svg_text_content_element.cc
+#  core/svg/svg_text_positioning_element.cc
+#
+#  core/svg/svg_svg_element.cc
+#  core/svg/svg_path_element.cc
+#  core/svg/svg_rect_element.cc
+#  core/svg/svg_text_element.cc
+#  core/svg/svg_g_element.cc
+#  core/svg/svg_circle_element.cc
+#  core/svg/svg_ellipse_element.cc
+#  core/svg/svg_style_element.cc
+#  core/svg/svg_line_element.cc
+
+  # Legacy implements, should remove them in the future.
+#  core/dom/legacy/element_attributes.cc
+#  core/dom/legacy/bounding_client_rect.cc
+#  core/input/touch.cc
+#  core/input/touch_list.cc
+)
 
 list(APPEND PUBLIC_HEADER
   include/webf_bridge.h
@@ -661,6 +923,10 @@ if (${IS_ANDROID})
   list(APPEND BRIDGE_LINK_LIBS ${log-lib})
 elseif(${IS_IOS})
   add_definitions(-DIS_IOS=1)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
+    target_compile_definitions(webf PRIVATE V8_COMPRESS_POINTERS=1 V8_ENABLE_SANDBOX=1)
+  endif()
 endif()
 
 

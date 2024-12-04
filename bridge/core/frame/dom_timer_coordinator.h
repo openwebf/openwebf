@@ -6,7 +6,6 @@
 #ifndef BRIDGE_BINDINGS_QJS_BOM_DOM_TIMER_COORDINATOR_H_
 #define BRIDGE_BINDINGS_QJS_BOM_DOM_TIMER_COORDINATOR_H_
 
-#include <quickjs/quickjs.h>
 #include <memory>
 #include <unordered_map>
 #include <vector>

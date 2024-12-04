@@ -5,7 +5,9 @@
 #ifndef BRIDGE_DOCUMENT_H
 #define BRIDGE_DOCUMENT_H
 
+#if WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/cppgc/local_handle.h"
+#endif
 #include "container_node.h"
 #include "event_type_names.h"
 #include "plugin_api/document.h"

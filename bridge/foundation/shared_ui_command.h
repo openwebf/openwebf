@@ -7,9 +7,10 @@
 
 #include <atomic>
 #include <memory>
-#include "foundation/native_type.h"
+//#include "foundation/native_type.h"
 #include "foundation/ui_command_buffer.h"
 #include "foundation/ui_command_strategy.h"
+#include "foundation/dart_readable.h"
 
 namespace webf {
 

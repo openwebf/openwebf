@@ -6,7 +6,9 @@
 #ifndef WEBF_JS_QJS_BRIDGE_H_
 #define WEBF_JS_QJS_BRIDGE_H_
 
+#if WEBF_QUICKJS_JS_ENGINE
 #include <quickjs/quickjs.h>
+#endif
 #include <atomic>
 #include <deque>
 #include <thread>

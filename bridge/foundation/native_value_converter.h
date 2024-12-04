@@ -5,8 +5,13 @@
 #ifndef BRIDGE_FOUNDATION_NATIVE_VALUE_CONVERTER_H_
 #define BRIDGE_FOUNDATION_NATIVE_VALUE_CONVERTER_H_
 
+
+#if WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/script_wrappable.h"
-#include "core/binding_object.h"
+#elif WEBF_V8_JS_ENGINE
+#endif
+
+//#include "core/binding_object.h"
 #include "native_type.h"
 #include "native_value.h"
 
@@ -23,37 +28,37 @@ template <typename T>
 struct NativeValueConverterBase {
   using ImplType = typename T::ImplType;
 };
-
-template <>
-struct NativeValueConverter<NativeTypeNull> : public NativeValueConverterBase<NativeTypeNull> {
-  static NativeValue ToNativeValue() { return Native_NewNull(); }
-
-  static ImplType FromNativeValue(JSContext* ctx) { return ScriptValue::Empty(ctx); }
-};
-
-template <>
-struct NativeValueConverter<NativeTypeString> : public NativeValueConverterBase<NativeTypeString> {
-  static NativeValue ToNativeValue(JSContext* ctx, const ImplType& value) {
-    return Native_NewString(value.ToNativeString(ctx).release());
-  }
-  static NativeValue ToNativeValue(const std::string& value) { return Native_NewCString(value); }
-
-  static ImplType FromNativeValue(JSContext* ctx, NativeValue&& value) {
-    if (value.tag == NativeTag::TAG_NULL) {
-      return AtomicString::Empty();
-    }
-    assert(value.tag == NativeTag::TAG_STRING);
-    return {ctx, std::unique_ptr<AutoFreeNativeString>(reinterpret_cast<AutoFreeNativeString*>(value.u.ptr))};
-  }
-
-  static ImplType FromNativeValue(JSContext* ctx, NativeValue& value) {
-    if (value.tag == NativeTag::TAG_NULL) {
-      return AtomicString::Empty();
-    }
-    assert(value.tag == NativeTag::TAG_STRING);
-    return {ctx, std::unique_ptr<AutoFreeNativeString>(reinterpret_cast<AutoFreeNativeString*>(value.u.ptr))};
-  }
-};
+//
+//template <>
+//struct NativeValueConverter<NativeTypeNull> : public NativeValueConverterBase<NativeTypeNull> {
+//  static NativeValue ToNativeValue() { return Native_NewNull(); }
+//
+//  static ImplType FromNativeValue(JSContext* ctx) { return ScriptValue::Empty(ctx); }
+//};
+//
+//template <>
+//struct NativeValueConverter<NativeTypeString> : public NativeValueConverterBase<NativeTypeString> {
+//  static NativeValue ToNativeValue(JSContext* ctx, const ImplType& value) {
+//    return Native_NewString(value.ToNativeString(ctx).release());
+//  }
+//  static NativeValue ToNativeValue(const std::string& value) { return Native_NewCString(value); }
+//
+//  static ImplType FromNativeValue(JSContext* ctx, NativeValue&& value) {
+//    if (value.tag == NativeTag::TAG_NULL) {
+//      return AtomicString::Empty();
+//    }
+//    assert(value.tag == NativeTag::TAG_STRING);
+//    return {ctx, std::unique_ptr<AutoFreeNativeString>(reinterpret_cast<AutoFreeNativeString*>(value.u.ptr))};
+//  }
+//
+//  static ImplType FromNativeValue(JSContext* ctx, NativeValue& value) {
+//    if (value.tag == NativeTag::TAG_NULL) {
+//      return AtomicString::Empty();
+//    }
+//    assert(value.tag == NativeTag::TAG_STRING);
+//    return {ctx, std::unique_ptr<AutoFreeNativeString>(reinterpret_cast<AutoFreeNativeString*>(value.u.ptr))};
+//  }
+//};
 
 template <>
 struct NativeValueConverter<NativeTypeBool> : public NativeValueConverterBase<NativeTypeBool> {
@@ -98,22 +103,22 @@ struct NativeValueConverter<NativeTypeDouble> : public NativeValueConverterBase<
     return result;
   }
 };
-
-template <>
-struct NativeValueConverter<NativeTypeJSON> : public NativeValueConverterBase<NativeTypeJSON> {
-  static NativeValue ToNativeValue(JSContext* ctx, ImplType value, ExceptionState& exception_state) {
-    return Native_NewJSON(ctx, value, exception_state);
-  }
-  static ImplType FromNativeValue(JSContext* ctx, NativeValue value) {
-    if (value.tag == NativeTag::TAG_NULL) {
-      return ScriptValue::Empty(ctx);
-    }
-
-    assert(value.tag == NativeTag::TAG_JSON);
-    auto* str = static_cast<const char*>(value.u.ptr);
-    return ScriptValue::CreateJsonObject(ctx, str, strlen(str));
-  }
-};
+//
+//template <>
+//struct NativeValueConverter<NativeTypeJSON> : public NativeValueConverterBase<NativeTypeJSON> {
+//  static NativeValue ToNativeValue(JSContext* ctx, ImplType value, ExceptionState& exception_state) {
+//    return Native_NewJSON(ctx, value, exception_state);
+//  }
+//  static ImplType FromNativeValue(JSContext* ctx, NativeValue value) {
+//    if (value.tag == NativeTag::TAG_NULL) {
+//      return ScriptValue::Empty(ctx);
+//    }
+//
+//    assert(value.tag == NativeTag::TAG_JSON);
+//    auto* str = static_cast<const char*>(value.u.ptr);
+//    return ScriptValue::CreateJsonObject(ctx, str, strlen(str));
+//  }
+//};
 
 class BindingObject;
 struct DartReadable;
@@ -130,7 +135,7 @@ struct NativeValueConverter<NativeTypePointer<T>, std::enable_if_t<std::is_void_
     assert(value.tag == NativeTag::TAG_POINTER);
     return static_cast<T*>(value.u.ptr);
   }
-  static T* FromNativeValue(JSContext* ctx, NativeValue value) {
+  static T* FromNativeValue(v8::Isolate* isolate, NativeValue value) {
     if (value.tag == NativeTag::TAG_NULL) {
       return nullptr;
     }
@@ -152,7 +157,7 @@ struct NativeValueConverter<NativeTypePointer<T>, std::enable_if_t<std::is_base_
     assert(value.tag == NativeTag::TAG_POINTER);
     return static_cast<T*>(value.u.ptr);
   }
-  static T* FromNativeValue(JSContext* ctx, NativeValue value) {
+  static T* FromNativeValue(v8::Isolate* isolate, NativeValue value) {
     if (value.tag == NativeTag::TAG_NULL) {
       return nullptr;
     }
@@ -161,50 +166,50 @@ struct NativeValueConverter<NativeTypePointer<T>, std::enable_if_t<std::is_base_
     return static_cast<T*>(value.u.ptr);
   }
 };
-
-template <typename T>
-struct NativeValueConverter<NativeTypePointer<T>, std::enable_if_t<std::is_base_of_v<ScriptWrappable, T>>>
-    : public NativeValueConverterBase<T> {
-  static NativeValue ToNativeValue(T* value) {
-    return Native_NewPtr(JSPointerType::NativeBindingObject, value->bindingObject());
-  }
-  static T* FromNativeValue(JSContext* ctx, NativeValue value) {
-    if (value.tag == NativeTag::TAG_NULL) {
-      return nullptr;
-    }
-    assert(value.tag == NativeTag::TAG_POINTER);
-    assert(value.uint32 == static_cast<int32_t>(JSPointerType::NativeBindingObject));
-    return DynamicTo<T>(BindingObject::From(static_cast<NativeBindingObject*>(value.u.ptr)));
-  }
-};
-
-template <>
-struct NativeValueConverter<NativeTypeFunction> : public NativeValueConverterBase<NativeTypeFunction> {
-  static NativeValue ToNativeValue(ImplType value) {
-    // Not supported.
-    assert(false);
-    return Native_NewNull();
-  }
-
-  static ImplType FromNativeValue(JSContext* ctx, NativeValue value) {
-    assert(value.tag == NativeTag::TAG_FUNCTION);
-    return QJSFunction::Create(ctx, BindingObject::AnonymousFunctionCallback, 4, value.u.ptr);
-  };
-};
-
-template <>
-struct NativeValueConverter<NativeTypeAsyncFunction> : public NativeValueConverterBase<NativeTypeAsyncFunction> {
-  static NativeValue ToNativeValue(ImplType value) {
-    // Not supported.
-    assert(false);
-    return Native_NewNull();
-  }
-
-  static ImplType FromNativeValue(JSContext* ctx, NativeValue value) {
-    assert(value.tag == NativeTag::TAG_ASYNC_FUNCTION);
-    return QJSFunction::Create(ctx, BindingObject::AnonymousAsyncFunctionCallback, 4, value.u.ptr);
-  }
-};
+//
+//template <typename T>
+//struct NativeValueConverter<NativeTypePointer<T>, std::enable_if_t<std::is_base_of_v<ScriptWrappable, T>>>
+//    : public NativeValueConverterBase<T> {
+//  static NativeValue ToNativeValue(T* value) {
+//    return Native_NewPtr(JSPointerType::NativeBindingObject, value->bindingObject());
+//  }
+//  static T* FromNativeValue(JSContext* ctx, NativeValue value) {
+//    if (value.tag == NativeTag::TAG_NULL) {
+//      return nullptr;
+//    }
+//    assert(value.tag == NativeTag::TAG_POINTER);
+//    assert(value.uint32 == static_cast<int32_t>(JSPointerType::NativeBindingObject));
+//    return DynamicTo<T>(BindingObject::From(static_cast<NativeBindingObject*>(value.u.ptr)));
+//  }
+//};
+//
+//template <>
+//struct NativeValueConverter<NativeTypeFunction> : public NativeValueConverterBase<NativeTypeFunction> {
+//  static NativeValue ToNativeValue(ImplType value) {
+//    // Not supported.
+//    assert(false);
+//    return Native_NewNull();
+//  }
+//
+//  static ImplType FromNativeValue(JSContext* ctx, NativeValue value) {
+//    assert(value.tag == NativeTag::TAG_FUNCTION);
+//    return QJSFunction::Create(ctx, BindingObject::AnonymousFunctionCallback, 4, value.u.ptr);
+//  };
+//};
+//
+//template <>
+//struct NativeValueConverter<NativeTypeAsyncFunction> : public NativeValueConverterBase<NativeTypeAsyncFunction> {
+//  static NativeValue ToNativeValue(ImplType value) {
+//    // Not supported.
+//    assert(false);
+//    return Native_NewNull();
+//  }
+//
+//  static ImplType FromNativeValue(JSContext* ctx, NativeValue value) {
+//    assert(value.tag == NativeTag::TAG_ASYNC_FUNCTION);
+//    return QJSFunction::Create(ctx, BindingObject::AnonymousAsyncFunctionCallback, 4, value.u.ptr);
+//  }
+//};
 
 template <typename T>
 struct NativeValueConverter<NativeTypeArray<T>> : public NativeValueConverterBase<NativeTypeArray<T>> {
@@ -217,7 +222,7 @@ struct NativeValueConverter<NativeTypeArray<T>> : public NativeValueConverterBas
     return Native_NewList(value.size(), ptr);
   }
 
-  static ImplType FromNativeValue(JSContext* ctx, NativeValue native_value) {
+  static ImplType FromNativeValue(v8::Isolate* isolate, NativeValue native_value) {
     if (native_value.tag == NativeTag::TAG_NULL) {
       return std::vector<typename T::ImplType>();
     }
@@ -229,7 +234,7 @@ struct NativeValueConverter<NativeTypeArray<T>> : public NativeValueConverterBas
     vec.reserve(length);
     for (int i = 0; i < length; i++) {
       NativeValue v = arr[i];
-      vec.emplace_back(NativeValueConverter<T>::FromNativeValue(ctx, std::move(v)));
+      vec.emplace_back(NativeValueConverter<T>::FromNativeValue(isolate, std::move(v)));
     }
     return vec;
   }

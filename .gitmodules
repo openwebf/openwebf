@@ -5,3 +5,7 @@
 [submodule "bridge/third_party/quickjs/compat/win32/pthread-win32"]
 	path = bridge/third_party/quickjs/compat/win32/pthread-win32
 	url = git@github.com:GerHobbelt/pthread-win32.git
+[submodule "bridge/third_party/v8"]
+	path = bridge/third_party/v8
+	url = https://github.com/openwebf/v8-release.git
+	branch = 13.3.206

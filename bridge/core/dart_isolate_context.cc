@@ -2,16 +2,17 @@
  * Copyright (C) 2022-present The WebF authors. All rights reserved.
  */
 
-#include "dart_isolate_context.h"
+#if WEBF_V8_JS_ENGINE
+#include <v8/v8-platform.h>
+#include "v8/libplatform/libplatform.h"
+#endif
 #include <unordered_set>
-#include "defined_properties_initializer.h"
-#include "event_factory.h"
-#include "html_element_factory.h"
-#include "logging.h"
-#include "multiple_threading/looper.h"
+#include "dart_isolate_context.h"
+//#include "event_factory.h"
+//#include "html_element_factory.h"
 #include "names_installer.h"
 #include "page.h"
-#include "svg_element_factory.h"
+//#include "svg_element_factory.h"
 
 namespace webf {
 
@@ -45,6 +46,7 @@ void DeleteDartWire(DartWireContext* wire) {
   delete wire;
 }
 
+#if WEBF_QUICKJS_JS_ENGINE
 static void ClearUpWires(JSRuntime* runtime) {
   for (auto& wire : alive_wires) {
     JS_FreeValueRT(runtime, wire->jsObject.QJSValue());
@@ -52,6 +54,7 @@ static void ClearUpWires(JSRuntime* runtime) {
   }
   alive_wires.clear();
 }
+#endif
 
 const std::unique_ptr<DartContextData>& DartIsolateContext::EnsureData() const {
   if (data_ == nullptr) {
@@ -60,18 +63,33 @@ const std::unique_ptr<DartContextData>& DartIsolateContext::EnsureData() const {
   return data_;
 }
 
+#if WEBF_V8_JS_ENGINE
+std::unique_ptr<v8::Platform> platform = nullptr;
+thread_local v8::Isolate* isolate_{nullptr};
+#elif WEBF_QUICKJS_JS_ENGINE
 thread_local JSRuntime* runtime_{nullptr};
+#endif
 thread_local uint32_t running_dart_isolates = 0;
 thread_local bool is_name_installed_ = false;
 
+#if WEBF_QUICKJS_JS_ENGINE
 void InitializeBuiltInStrings(JSContext* ctx) {
   if (!is_name_installed_) {
     names_installer::Init(ctx);
     is_name_installed_ = true;
   }
 }
+#elif WEBF_V8_JS_ENGINE
+void InitializeBuiltInStrings(v8::Isolate* isolate) {
+  if (!is_name_installed_) {
+//    names_installer::Init(isolate);
+    is_name_installed_ = true;
+  }
+}
+#endif
 
 void DartIsolateContext::InitializeJSRuntime() {
+#if WEBF_QUICKJS_JS_ENGINE
   if (runtime_ != nullptr)
     return;
   runtime_ = JS_NewRuntime();
@@ -82,38 +100,71 @@ void DartIsolateContext::InitializeJSRuntime() {
     JSClassID id{0};
     JS_NewClassID(&id);
   }
+#elif WEBF_V8_JS_ENGINE
+  if (platform == nullptr) {
+    platform = v8::platform::NewDefaultPlatform();
+    v8::V8::InitializePlatform(platform.get());
+    v8::V8::Initialize();
+  }
+  // Create a new Isolate and make it the current one.
+  v8::Isolate::CreateParams create_params;
+  create_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+  isolate_ = v8::Isolate::New(create_params);
+#endif
 }
 
 void DartIsolateContext::FinalizeJSRuntime() {
   if (running_dart_isolates > 0 || runtime_ == nullptr) {
     return;
   }
+#if WEBF_QUICKJS_JS_ENGINE
+  if (runtime_ == nullptr) {
+    return;
+  }
+#elif WEBF_V8_JS_ENGINE
+  if (isolate_ == nullptr) {
+    return;
+  }
+#endif
+
 
   // Prebuilt strings stored in JSRuntime. Only needs to dispose when runtime disposed.
-  names_installer::Dispose();
-  HTMLElementFactory::Dispose();
-  SVGElementFactory::Dispose();
-  EventFactory::Dispose();
+//  names_installer::Dispose();
+//  HTMLElementFactory::Dispose();
+//  SVGElementFactory::Dispose();
+//  EventFactory::Dispose();
+
+#if WEBF_QUICKJS_JS_ENGINE
   ClearUpWires(runtime_);
   JS_TurnOnGC(runtime_);
   JS_FreeRuntime(runtime_);
   runtime_ = nullptr;
+#elif WEBF_V8_JS_ENGINE
+  isolate_->Dispose();
+  isolate_ = nullptr;
+#endif
   is_name_installed_ = false;
 }
 
 DartIsolateContext::DartIsolateContext(const uint64_t* dart_methods, int32_t dart_methods_length, bool profile_enabled)
     : is_valid_(true),
       running_thread_(std::this_thread::get_id()),
-      profiler_(std::make_unique<WebFProfiler>(profile_enabled)),
+//      profiler_(std::make_unique<WebFProfiler>(profile_enabled)),
       dart_method_ptr_(std::make_unique<DartMethodPointer>(this, dart_methods, dart_methods_length)) {
   is_valid_ = true;
   running_dart_isolates++;
 }
 
+#if WEBF_QUICKJS_JS_ENGINE
 JSRuntime* DartIsolateContext::runtime() {
   assert_m(runtime_ != nullptr, "nullptr is unsafe");
   return runtime_;
 }
+#elif WEBF_V8_JS_ENGINE
+v8::Isolate* DartIsolateContext::isolate() {
+  return isolate_;
+}
+#endif
 
 DartIsolateContext::~DartIsolateContext() {}
 
@@ -134,11 +185,14 @@ void DartIsolateContext::InitializeNewPageInJSThread(PageGroup* page_group,
                                                      int32_t sync_buffer_size,
                                                      Dart_Handle dart_handle,
                                                      AllocateNewPageCallback result_callback) {
-  dart_isolate_context->profiler()->StartTrackInitialize();
+//  dart_isolate_context->profiler()->StartTrackInitialize();
   DartIsolateContext::InitializeJSRuntime();
+
+  v8::HandleScope handle_scope(dart_isolate_context->isolate());
+
   auto* page = new WebFPage(dart_isolate_context, true, sync_buffer_size, page_context_id, nullptr);
 
-  dart_isolate_context->profiler()->FinishTrackInitialize();
+//  dart_isolate_context->profiler()->FinishTrackInitialize();
 
   dart_isolate_context->dispatcher_->PostToDart(true, HandleNewPageResult, page_group, dart_handle, result_callback,
                                                 page);
@@ -191,10 +245,10 @@ void* DartIsolateContext::AddNewPage(double thread_identity,
 std::unique_ptr<WebFPage> DartIsolateContext::InitializeNewPageSync(DartIsolateContext* dart_isolate_context,
                                                                     size_t sync_buffer_size,
                                                                     double page_context_id) {
-  dart_isolate_context->profiler()->StartTrackInitialize();
+//  dart_isolate_context->profiler()->StartTrackInitialize();
   DartIsolateContext::InitializeJSRuntime();
   auto page = std::make_unique<WebFPage>(dart_isolate_context, false, sync_buffer_size, page_context_id, nullptr);
-  dart_isolate_context->profiler()->FinishTrackInitialize();
+//  dart_isolate_context->profiler()->FinishTrackInitialize();
 
   return page;
 }

@@ -9,7 +9,12 @@
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
+
+#if WEBF_V8_JS_ENGINE
+#include "bindings/v8/atomic_string.h"
+#elif WEBF_QUICKJS_JS_ENGINE
 #include "bindings/qjs/atomic_string.h"
+#endif
 
 namespace webf {
 
