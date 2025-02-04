@@ -73,7 +73,9 @@ class SVGRenderBoxBuilder {
             .toDartString(length: element.original_tag.length)
             .toUpperCase();
         final renderBox = getSVGRenderBox(tagName);
-
+        if (renderBox == null) {
+          return false;
+        }
         final attributes = element.attributes;
         for (int i = 0; i < attributes.length; i++) {
           final attr = attributes.data[i] as Pointer<NativeGumboAttribute>;
@@ -99,7 +101,7 @@ class SVGRenderBoxBuilder {
     return rootRenderObject as RenderBoxModel;
   }
 
-  RenderBoxModel getSVGRenderBox(String tagName) {
+  RenderBoxModel? getSVGRenderBox(String tagName) {
     final Constructor = svgElementsRegistry[tagName];
     if (Constructor != null) {
       final element = Constructor(null);
@@ -110,6 +112,14 @@ class SVGRenderBoxBuilder {
       }
       element.tagName = tagName;
       element.namespaceURI = SVG_ELEMENT_URI;
+      /// These tags are only for setting properties and do not need to participate in time rendering.
+      /// Such tags do not require renderBoxModel.
+      if (tagName == TAG_DEFS ||
+          tagName == TAG_LINEAR_GRADIENT ||
+          tagName == TAG_STOP ||
+          tagName == TAG_CLIP_PATH) {
+        return null;
+      }
       element.createRenderer();
       return element.renderBoxModel!;
     }
