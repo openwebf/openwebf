@@ -5,6 +5,7 @@
 
 import 'dart:async';
 import 'dart:ui';
+import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
@@ -19,6 +20,8 @@ import 'package:webf/src/svg/rendering/container.dart';
 import 'package:webf/svg.dart';
 import 'package:webf/widget.dart';
 import 'package:webf/src/css/query_selector.dart' as QuerySelector;
+import 'intersection_observer.dart';
+import 'intersection_observer_entry.dart';
 
 final RegExp classNameSplitRegExp = RegExp(r'\s+');
 const String _ONE_SPACE = ' ';
@@ -108,6 +111,9 @@ class ElementAttributeProperty {
 abstract class Element extends ContainerNode with ElementBase, ElementEventMixin, ElementOverflowMixin {
   // Default to unknown, assign by [createElement], used by inspector.
   String tagName = UNKNOWN;
+
+  final Set<IntersectionObserver> _intersectionObserverList = {};
+  List<double> _thresholds = [0.0];
 
   String? _id;
 
@@ -406,6 +412,9 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
 
       // Ensure that the event responder is bound.
       ensureEventResponderBound();
+
+      // Ensure IntersectionObserver when renderBoxModel change.
+      ensureAddIntersectionObserver();
     }
   }
 
@@ -1012,6 +1021,7 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
     _beforeElement = null;
     _afterElement?.dispose();
     _afterElement = null;
+    renderBoxModel?.removeIntersectionChangeListener(_handleIntersectionObserver);
     super.dispose();
   }
 
@@ -1991,6 +2001,43 @@ abstract class Element extends ContainerNode with ElementBase, ElementEventMixin
       style = renderBoxModel?.renderStyle;
     }
     return style;
+  }
+
+  bool _handleIntersectionObserver(IntersectionObserverEntry entry) {
+    // If there are multiple IntersectionObservers, they cannot be distributed accurately
+    for (var observer in _intersectionObserverList) {
+      observer.addEntry(DartIntersectionObserverEntry(entry.isIntersecting, entry.intersectionRatio, this));
+    }
+
+    return _intersectionObserverList.isNotEmpty;
+  }
+
+  bool addIntersectionObserver(IntersectionObserver observer, List<double> thresholds) {
+    if (_intersectionObserverList.contains(observer)) {
+      return false;
+    }
+    if (renderBoxModel?.attached ?? false) {
+      renderBoxModel!.addIntersectionChangeListener(_handleIntersectionObserver, thresholds);
+      renderBoxModel!.markNeedsPaint();
+    }
+    _intersectionObserverList.add(observer);
+    _thresholds = thresholds;
+    return true;
+  }
+
+  void removeIntersectionObserver(IntersectionObserver observer) {
+    _intersectionObserverList.remove(observer);
+
+    if (_intersectionObserverList.isEmpty) {
+      renderBoxModel?.removeIntersectionChangeListener(_handleIntersectionObserver);
+    }
+  }
+
+  void ensureAddIntersectionObserver() {
+    if (_intersectionObserverList.isEmpty) {
+      return;
+    }
+    renderBoxModel?.addIntersectionChangeListener(_handleIntersectionObserver, _thresholds);
   }
 }
 

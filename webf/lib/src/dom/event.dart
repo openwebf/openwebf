@@ -85,7 +85,7 @@ mixin ElementEventMixin on ElementBase {
       // Make sure pointer responder bind.
       renderBox.getEventTarget = getEventTarget;
 
-      if (_hasIntersectionObserverEvent()) {
+      if (hasIntersectionObserverEvent()) {
         renderBox.addIntersectionChangeListener(handleIntersectionChange);
         // Mark the compositing state for this render object as dirty
         // cause it will create new layer.
@@ -102,7 +102,7 @@ mixin ElementEventMixin on ElementBase {
     }
   }
 
-  bool _hasIntersectionObserverEvent() {
+  bool hasIntersectionObserverEvent() {
     return hasEventListener(EVENT_APPEAR) ||
         hasEventListener(EVENT_DISAPPEAR) ||
         hasEventListener(EVENT_INTERSECTION_CHANGE);
@@ -148,13 +148,15 @@ mixin ElementEventMixin on ElementBase {
     dispatchEvent(DisappearEvent());
   }
 
-  void handleIntersectionChange(IntersectionObserverEntry entry) {
-    dispatchEvent(IntersectionChangeEvent(entry.intersectionRatio));
-    if (entry.intersectionRatio > 0) {
+  bool handleIntersectionChange(IntersectionObserverEntry entry) {
+    final double intersectionRatio = entry.intersectionRatio;
+    dispatchEvent(IntersectionChangeEvent(intersectionRatio));
+    if (intersectionRatio > 0) {
       handleAppear();
     } else {
       handleDisappear();
     }
+    return false;
   }
 
   void handleResizeChange(ResizeObserverEntry entry) {

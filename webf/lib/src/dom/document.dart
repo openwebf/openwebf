@@ -18,6 +18,7 @@ import 'package:webf/rendering.dart';
 import 'package:webf/src/css/query_selector.dart' as QuerySelector;
 import 'package:webf/src/dom/element_registry.dart' as element_registry;
 import 'package:webf/src/foundation/cookie_jar.dart';
+import 'package:webf/src/dom/intersection_observer.dart';
 
 /// In the document tree, there may contains WidgetElement which connected to a Flutter Elements.
 /// And these flutter element will be unmounted in the end of this frame and their renderObject will call dispose() too.
@@ -98,6 +99,8 @@ class Document extends ContainerNode {
   final List<AsyncCallback> pendingPreloadingScriptCallbacks = [];
 
   final Set<int> _styleDirtyElements = {};
+
+  final Set<IntersectionObserver> _intersectionObserverList = {};
 
   void markElementStyleDirty(Element element) {
     _styleDirtyElements.add(element.pointer!.address);
@@ -587,5 +590,31 @@ class Document extends ContainerNode {
     fixedChildren.clear();
     pendingPreloadingScriptCallbacks.clear();
     super.dispose();
+  }
+
+  void addIntersectionObserver(IntersectionObserver observer, Element element) {
+    observer.observe(element);
+    _intersectionObserverList.add(observer);
+  }
+
+  void removeIntersectionObserver(IntersectionObserver observer, Element element) {
+    observer.unobserve(element);
+    if (!observer.HasObservations()) {
+      _intersectionObserverList.remove(observer);
+    }
+  }
+
+  void disconnectIntersectionObserver(IntersectionObserver observer) {
+    observer.disconnect();
+    _intersectionObserverList.remove(observer);
+  }
+
+  void deliverIntersectionObserver() {
+    if (_intersectionObserverList.isEmpty) {
+      return;
+    }
+    for (var observer in _intersectionObserverList) {
+      observer.deliver(controller);
+    }
   }
 }

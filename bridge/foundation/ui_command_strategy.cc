@@ -85,7 +85,10 @@ void UICommandSyncStrategy::RecordUICommand(UICommand type,
     case UICommand::kSetAttribute:
     case UICommand::kRemoveEvent:
     case UICommand::kAddEvent:
-    case UICommand::kDisposeBindingObject: {
+    case UICommand::kDisposeBindingObject:
+    case UICommand::kAddIntersectionObserver:
+    case UICommand::kRemoveIntersectionObserver:
+    case UICommand::kDisconnectIntersectionObserver: {
       host_->waiting_buffer_->addCommand(type, std::move(args_01), native_binding_object, native_ptr2,
                                          request_ui_update);
       break;

@@ -74,6 +74,47 @@ Promise.resolve().then(() => {
   EXPECT_EQ(logCalled, true);
 }
 
+TEST(Node, IntersectionObserver) {
+  bool static errorCalled = false;
+  bool static logCalled = false;
+  webf::WebFPage::consoleMessageHandler = [](void* ctx, const std::string& message, int logLevel) { logCalled = true; };
+  auto env = TEST_init([](double contextId, const char* errmsg) { errorCalled = true; });
+  auto context = env->page()->executingContext();
+  const char* code = R"(
+    // Create the observed element
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    // Callback function to execute when mutations are observed
+    const callback = (entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { // Element is visible
+          console.log('Element is intersecting');
+        } else { // Element is not visible
+          console.log('Element is not intersecting');
+        }
+      });
+    };
+
+    const options = {
+      root: null, // Use the viewport as the root
+      rootMargin: "0px",
+      threshold: [0, 1], // Trigger callback at 0% and 100% visibility
+    };
+
+    // Create an observer instance linked to the callback function
+    const observer = new IntersectionObserver(callback, options);
+
+    // Start observing the target element
+    observer.observe(container);
+  )";
+  env->page()->evaluateScript(code, strlen(code), "vm://", 0);
+
+  TEST_runLoop(context);
+
+  EXPECT_EQ(errorCalled, false);
+  EXPECT_EQ(logCalled, true);
+}
+
 TEST(Node, nodeName) {
   bool static errorCalled = false;
   bool static logCalled = false;

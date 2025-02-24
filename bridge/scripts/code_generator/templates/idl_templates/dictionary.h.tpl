@@ -7,6 +7,7 @@ namespace webf {
 
 class ExecutingContext;
 class ExceptionState;
+class Node;
 
 class <%= className %> : public <%= object.parent ? object.parent : 'DictionaryBase' %> {
  public:

@@ -353,7 +353,7 @@ class ImageElement extends Element {
   // The getter must be called after image had loaded, otherwise will return 0.
   int naturalHeight = 0;
 
-  void _handleIntersectionChange(IntersectionObserverEntry entry) async {
+  bool _handleIntersectionChange(IntersectionObserverEntry entry) {
     // When appear
     if (entry.isIntersecting) {
       _updateImageDataLazyCompleter?.complete();
@@ -361,6 +361,7 @@ class ImageElement extends Element {
     } else {
       _stopListeningStream(keepStreamAlive: true);
     }
+    return false;
   }
 
   // To prevent trigger load event more than once.

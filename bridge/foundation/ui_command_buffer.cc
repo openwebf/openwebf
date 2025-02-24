@@ -40,6 +40,10 @@ UICommandKind GetKindFromUICommand(UICommand command) {
     case UICommand::kStartRecordingCommand:
     case UICommand::kFinishRecordingCommand:
       return UICommandKind::kOperation;
+    case UICommand::kAddIntersectionObserver:
+    case UICommand::kRemoveIntersectionObserver:
+    case UICommand::kDisconnectIntersectionObserver:
+      return UICommandKind::kIntersectionObserver;
     default:
       return UICommandKind::kUknownCommand;
   }

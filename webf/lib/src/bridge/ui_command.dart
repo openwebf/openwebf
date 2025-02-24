@@ -312,6 +312,39 @@ void execUICommands(WebFViewController view, List<UICommand> commands) {
             WebFProfiler.instance.finishTrackUICommandStep();
           }
           break;
+        case UICommandType.addIntersectionObserver:
+          if (enableWebFProfileTracking) {
+            WebFProfiler.instance.startTrackUICommandStep('FlushUICommand.addIntersectionObserver');
+          }
+
+          view.addIntersectionObserver(
+              nativePtr.cast<NativeBindingObject>(), command.nativePtr2.cast<NativeBindingObject>());
+          if (enableWebFProfileTracking) {
+            WebFProfiler.instance.finishTrackUICommandStep();
+          }
+
+          break;
+        case UICommandType.removeIntersectionObserver:
+          if (enableWebFProfileTracking) {
+            WebFProfiler.instance.startTrackUICommandStep('FlushUICommand.removeIntersectionObserver');
+          }
+
+          view.removeIntersectionObserver(
+              nativePtr.cast<NativeBindingObject>(), command.nativePtr2.cast<NativeBindingObject>());
+          if (enableWebFProfileTracking) {
+            WebFProfiler.instance.finishTrackUICommandStep();
+          }
+          break;
+        case UICommandType.disconnectIntersectionObserver:
+          if (enableWebFProfileTracking) {
+            WebFProfiler.instance.startTrackUICommandStep('FlushUICommand.disconnectIntersectionObserver');
+          }
+
+          view.disconnectIntersectionObserver(nativePtr.cast<NativeBindingObject>());
+          if (enableWebFProfileTracking) {
+            WebFProfiler.instance.finishTrackUICommandStep();
+          }
+          break;
         default:
           break;
       }

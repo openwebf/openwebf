@@ -688,6 +688,10 @@ enum UICommandType {
   createSVGElement,
   createElementNS,
   finishRecordingCommand,
+  // IntersectionObserver
+  addIntersectionObserver,
+  removeIntersectionObserver,
+  disconnectIntersectionObserver,
 }
 
 class UICommandItem extends Struct {

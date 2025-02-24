@@ -120,6 +120,10 @@ enum {
   JS_CLASS_SVG_LENGTH,
   JS_CLASS_SVG_ANIMATED_LENGTH,
 
+  // IntersectionObserver
+  JS_CLASS_INTERSECTION_OBSERVER,
+  JS_CLASS_INTERSECTION_OBSERVER_ENTRY,
+
   JS_CLASS_CUSTOM_CLASS_INIT_COUNT /* last entry for predefined classes */
 };
 

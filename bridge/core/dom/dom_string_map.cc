@@ -150,7 +150,8 @@ bool DOMStringMap::SetItem(const webf::AtomicString& key,
   }
 
   auto attribute_name = AtomicString(ctx(), ConvertPropertyNameToAttributeName(key.ToStdString(ctx())));
-  return owner_element_->attributes()->setAttribute(attribute_name, value, exception_state);
+  owner_element_->setAttribute(attribute_name, value, exception_state);
+  return true;
 }
 
 bool DOMStringMap::DeleteItem(const webf::AtomicString& key, webf::ExceptionState& exception_state) {
