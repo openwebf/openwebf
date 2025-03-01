@@ -9,6 +9,7 @@
 #include "bindings/qjs/cppgc/member.h"
 #include "bindings/qjs/exception_state.h"
 #include "bindings/qjs/script_wrappable.h"
+#include "plugin_api/dom_string_map.h"
 
 namespace webf {
 
@@ -29,6 +30,7 @@ class DOMStringMap : public ScriptWrappable {
   bool DeleteItem(const AtomicString& key, ExceptionState& exception_state);
 
   void Trace(webf::GCVisitor* visitor) const override;
+  const DOMStringMapPublicMethods* domStringMapPublicMethods();
 
  private:
   Member<Element> owner_element_;

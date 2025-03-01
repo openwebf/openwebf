@@ -23,4 +23,9 @@ NativeValue BoundingClientRect::HandleCallFromDartSide(const AtomicString& metho
   return Native_NewNull();
 }
 
+const BoundingClientRectPublicMethods* BoundingClientRect::boundingClientRectPublicMethods() {
+  static BoundingClientRectPublicMethods bounding_client_rect_public_methods;
+  return &bounding_client_rect_public_methods;
+}
+
 }  // namespace webf

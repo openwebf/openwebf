@@ -26,5 +26,15 @@
 #include "core/events/pointer_event.h"
 #include "core/events/transition_event.h"
 #include "core/events/ui_event.h"
+#include "core/dom/legacy/element_attributes.h"
+#include "core/css/inline_css_style_declaration.h"
+#include "core/css/computed_css_style_declaration.h"
+#include "core/dom/legacy/bounding_client_rect.h"
+#include "core/dom/dom_string_map.h"
+#include "core/timing/performance_mark.h"
+#include "core/dom/mutation_observer_registration.h"
+#include "core/input/touch_list.h"
+#include "core/input/touch.h"
+#include "core/timing/performance_measure.h"
 
 <%= content %>

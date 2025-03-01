@@ -9,6 +9,7 @@
 #include "bindings/qjs/cppgc/member.h"
 #include "bindings/qjs/exception_state.h"
 #include "bindings/qjs/script_wrappable.h"
+#include "plugin_api/performance_entry.h"
 
 namespace webf {
 
@@ -32,6 +33,10 @@ class PerformanceEntry : public ScriptWrappable {
   int64_t uniqueId() const;
 
   ScriptValue toJSON(ExceptionState& exception_state);
+
+  virtual bool IsPerformanceMeasure() const;
+  virtual bool IsPerformanceMark() const;
+  const PerformanceEntryPublicMethods* performanceEntryPublicMethods();
 
  private:
   AtomicString name_;

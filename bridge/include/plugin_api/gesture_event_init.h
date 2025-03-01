@@ -8,6 +8,7 @@
 #define WEBF_CORE_WEBF_API_PLUGIN_API_GESTURE_EVENT_INIT_H_
 #include <stdint.h>
 #include "webf_value.h"
+#include "foundation/native_value.h"
 namespace webf {
 struct WebFGestureEventInit {
   int32_t bubbles;

@@ -21,7 +21,10 @@ namespace webf {
 }
   <% if (!prop.readonly) { %>
 void <%= className %>PublicMethods::Set<%= _.startCase(prop.name).replace(/ /g, '') %>(<%= className %>* <%= _.snakeCase(className) %>, <%= generatePublicReturnTypeValue(prop.type, true) %> <%= prop.name %>, SharedExceptionState* shared_exception_state) {
-  <%= _.snakeCase(className) %>->set<%= _.startCase(prop.name).replace(/ /g, '') %>(<%= prop.name %>, shared_exception_state->exception_state);
+  <% if (isStringType(prop.type)) { %>
+  webf::AtomicString <%= prop.name %>Atomic = webf::AtomicString(<%= _.snakeCase(className) %>->ctx(), <%= prop.name %>);
+  <% } %>
+  <%= _.snakeCase(className) %>->set<%= _.startCase(prop.name).replace(/ /g, '') %>(<%= prop.name %><% if (isStringType(prop.type)) { %>Atomic<% } %>, shared_exception_state->exception_state);
 }
   <% } %>
   <% if (isStringType(prop.type)) { %>
@@ -42,7 +45,18 @@ void <%= className %>PublicMethods::Set<%= _.startCase(prop.name).replace(/ /g, 
   ScriptValue <%=_.snakeCase(arg.name)%>_script_value = ScriptValue(<%= _.snakeCase(className) %>->ctx(), <%=_.snakeCase(arg.name)%>);
     <% } %>
   <% }); %>
+    <% if (isStringType(method.returnType)) { %>
+  webf::AtomicString value = <%= _.snakeCase(className) %>-><%= method.name %>(<%= generatePublicParametersName(method.args) %>shared_exception_state->exception_state);
+  return value.ToStringView().Characters8();
+    <% } else if (isVoidType(method.returnType)) { %>
+  <%= _.snakeCase(className) %>-><%= method.name %>(<%= generatePublicParametersName(method.args) %>shared_exception_state->exception_state);
+    <% } else if (isAnyType(method.returnType)) { %>
+  auto return_value = <%= _.snakeCase(className) %>-><%= method.name %>(<%= generatePublicParametersName(method.args) %>shared_exception_state->exception_state);
+  auto return_native_value = return_value.ToNative(<%= _.snakeCase(className) %>->ctx(), shared_exception_state->exception_state, false);
+  return return_native_value;
+    <% } else { %>
   return <%= _.snakeCase(className) %>-><%= method.name %>(<%= generatePublicParametersName(method.args) %>shared_exception_state->exception_state);
+    <% } %>
 }
 <% }); %>
 
@@ -73,14 +87,22 @@ WebFValue<<%= className %>, WebFPublicMethods> <%= className %>PublicMethods::Dy
   }
 }
 <% } %>
-<% if (object.construct) { %>
-  <% if (object.construct.args.length >= 1 && object.construct.args.some(arg => arg.name === 'type')) { %>
-WebFValue<<%= className %>, <%= className %>PublicMethods> ExecutingContextWebFMethods::Create<%= className %>(ExecutingContext* context,  <%= object.construct.args.some(arg => arg.name === 'type') ? "const char* type": null %>, ExceptionState& exception_state) {
-    <% if (object.construct.args.some(arg => arg.name === 'type')) { %>
-  AtomicString type_atomic = AtomicString(context->ctx(), type);
-    <% } %>
+<% if (object.construct && !isVoidType(object.construct.returnType)) { %>
+  <% if (object.construct.args.length === 0) { %>
+WebFValue<<%= className %>, <%= className %>PublicMethods> ExecutingContextWebFMethods::Create<%= className %>(ExecutingContext* context, ExceptionState& exception_state) {
 
-  <%= className %>* event = <%= className %>::Create(context,  <% if (object.construct.args.some(arg => arg.name === 'type')) { %>type_atomic, <% } %> exception_state);
+  <%= className %>* obj = <%= className %>::Create(context, exception_state);
+  WebFValueStatus* status_block = obj->KeepAlive();
+
+  return WebFValue<<%= className %>, <%= className %>PublicMethods>(obj, obj-><%= _.camelCase(className) %>PublicMethods(), status_block);
+};
+  <% } %>
+
+  <% if (object.construct.args.length >= 1 && object.construct.args.some(arg => arg.name === 'type')) { %>
+WebFValue<<%= className %>, <%= className %>PublicMethods> ExecutingContextWebFMethods::Create<%= className %>(ExecutingContext* context, const char* type, ExceptionState& exception_state) {
+  AtomicString type_atomic = AtomicString(context->ctx(), type);
+
+  <%= className %>* event = <%= className %>::Create(context, type_atomic, exception_state);
 
   WebFValueStatus* status_block = event->KeepAlive();
   return WebFValue<<%= className %>, <%= className %>PublicMethods>(event, event-><%= _.camelCase(className) %>PublicMethods(), status_block);
@@ -110,7 +132,7 @@ WebFValue<<%= className %>, <%= className %>PublicMethods> ExecutingContextWebFM
   <% }) %>
   <% } %>
 
-  <%= className %>* event = <%= className %>::Create(context, <% if (object.construct.args.some(arg => arg.name === 'type')) { %>type_atomic, init_class<% } %>, exception_state);
+  <%= className %>* event = <%= className %>::Create(context, <% if (object.construct.args.some(arg => arg.name === 'type')) { %>type_atomic<% } %>, init_class, exception_state);
 
   WebFValueStatus* status_block = event->KeepAlive();
   return WebFValue<<%= className %>, <%= className %>PublicMethods>(event, event-><%= _.camelCase(className) %>PublicMethods(), status_block);

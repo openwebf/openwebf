@@ -10,6 +10,7 @@
 #include "bindings/qjs/atomic_string.h"
 #include "bindings/qjs/cppgc/member.h"
 #include "bindings/qjs/script_wrappable.h"
+#include "plugin_api/element_attributes.h"
 
 namespace webf {
 
@@ -39,6 +40,7 @@ class ElementAttributes : public ScriptWrappable {
   std::unordered_map<AtomicString, AtomicString>::iterator end();
 
   void Trace(GCVisitor* visitor) const override;
+  const ElementAttributesPublicMethods* elementAttributesPublicMethods();
 
  private:
   Member<Element> element_;

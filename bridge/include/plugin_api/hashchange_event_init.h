@@ -8,6 +8,7 @@
 #define WEBF_CORE_WEBF_API_PLUGIN_API_HASHCHANGE_EVENT_INIT_H_
 #include <stdint.h>
 #include "webf_value.h"
+#include "foundation/native_value.h"
 namespace webf {
 struct WebFHashchangeEventInit {
   int32_t bubbles;

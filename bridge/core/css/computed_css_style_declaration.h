@@ -8,6 +8,7 @@
 #include "bindings/qjs/cppgc/member.h"
 #include "core/binding_object.h"
 #include "css_style_declaration.h"
+#include "plugin_api/computed_css_style_declaration.h"
 
 namespace webf {
 
@@ -38,6 +39,8 @@ class ComputedCssStyleDeclaration : public CSSStyleDeclaration {
 
   AtomicString cssText() const override;
   void setCssText(const AtomicString& value, ExceptionState& exception_state) override;
+
+  const ComputedCssStyleDeclarationPublicMethods* computedCssStyleDeclarationPublicMethods();
 
  private:
 };

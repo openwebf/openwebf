@@ -19,17 +19,17 @@ class Event;
 enum class EventType {
   kEvent = 0,
   kCustomEvent = 1,
-  kAnimationEvent = 2,
+  kGestureEvent = 2,
   kCloseEvent = 3,
-  kGestureEvent = 4,
-  kHashchangeEvent = 5,
-  kIntersectionChangeEvent = 6,
-  kTransitionEvent = 7,
-  kUIEvent = 8,
-  kFocusEvent = 9,
-  kInputEvent = 10,
-  kMouseEvent = 11,
-  kPointerEvent = 12,
+  kAnimationEvent = 4,
+  kIntersectionChangeEvent = 5,
+  kUIEvent = 6,
+  kFocusEvent = 7,
+  kInputEvent = 8,
+  kMouseEvent = 9,
+  kPointerEvent = 10,
+  kTransitionEvent = 11,
+  kHashchangeEvent = 12,
 };
 using PublicEventGetBubbles = int32_t (*)(Event*);
 using PublicEventGetCancelBubble = int32_t (*)(Event*);

@@ -147,4 +147,9 @@ void ElementAttributes::Trace(GCVisitor* visitor) const {
   visitor->TraceMember(element_);
 }
 
+const ElementAttributesPublicMethods* ElementAttributes::elementAttributesPublicMethods() {
+  static ElementAttributesPublicMethods element_attributes_public_methods;
+  return &element_attributes_public_methods;
+}
+
 }  // namespace webf

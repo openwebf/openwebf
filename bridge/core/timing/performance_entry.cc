@@ -47,4 +47,17 @@ ScriptValue PerformanceEntry::toJSON(ExceptionState& exception_state) {
   return result;
 }
 
+bool PerformanceEntry::IsPerformanceMeasure() const {
+  return false;
+}
+
+bool PerformanceEntry::IsPerformanceMark() const {
+  return false;
+}
+
+const PerformanceEntryPublicMethods* PerformanceEntry::performanceEntryPublicMethods() {
+  static PerformanceEntryPublicMethods performance_entry_public_methods;
+  return &performance_entry_public_methods;
+}
+
 }  // namespace webf

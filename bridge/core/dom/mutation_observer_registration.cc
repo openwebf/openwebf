@@ -142,4 +142,10 @@ void MutationObserverRegistration::Trace(GCVisitor* visitor) const {
   }
 }
 
+const MutationObserverRegistrationPublicMethods*
+MutationObserverRegistration::mutationObserverRegistrationPublicMethods() {
+  static MutationObserverRegistrationPublicMethods mutation_observer_registration_public_methods;
+  return &mutation_observer_registration_public_methods;
+}
+
 }  // namespace webf

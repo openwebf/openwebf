@@ -8,6 +8,7 @@
 #include "bindings/qjs/script_value.h"
 #include "core/executing_context.h"
 #include "performance_entry.h"
+#include "plugin_api/performance_measure.h"
 
 namespace webf {
 
@@ -32,9 +33,16 @@ class PerformanceMeasure : public PerformanceEntry {
   ScriptValue detail() const;
 
   AtomicString entryType() const override;
+  bool IsPerformanceMeasure() const override;
+  const PerformanceMeasurePublicMethods* performanceMeasurePublicMethods();
 
  private:
   ScriptValue detail_;
+};
+
+template <>
+struct DowncastTraits<PerformanceMeasure> {
+  static bool AllowFrom(const PerformanceEntry& entry) { return entry.IsPerformanceMeasure(); }
 };
 
 }  // namespace webf

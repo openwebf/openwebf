@@ -9,6 +9,7 @@
 #include "bindings/qjs/exception_state.h"
 #include "bindings/qjs/script_wrappable.h"
 #include "core/binding_object.h"
+#include "plugin_api/bounding_client_rect.h"
 
 namespace webf {
 
@@ -47,6 +48,7 @@ class BoundingClientRect : public BindingObject {
   double right() const { return extra_->right; }
   double bottom() const { return extra_->bottom; }
   double left() const { return extra_->left; }
+  const BoundingClientRectPublicMethods* boundingClientRectPublicMethods();
 
  private:
   BoundingClientRectData* extra_ = nullptr;

@@ -8,6 +8,7 @@
 #include "bindings/qjs/cppgc/member.h"
 #include "bindings/qjs/script_wrappable.h"
 #include "core/dom/events/event_target.h"
+#include "plugin_api/touch.h"
 #include "qjs_touch_init.h"
 
 namespace webf {
@@ -62,6 +63,7 @@ class Touch : public ScriptWrappable {
   EventTarget* target() const;
 
   void Trace(GCVisitor* visitor) const override;
+  const TouchPublicMethods* touchPublicMethods();
 
  private:
   double altitude_angle_;

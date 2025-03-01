@@ -98,4 +98,10 @@ AtomicString ComputedCssStyleDeclaration::cssText() const {
 
 void ComputedCssStyleDeclaration::setCssText(const webf::AtomicString& value, webf::ExceptionState& exception_state) {}
 
+const ComputedCssStyleDeclarationPublicMethods*
+ComputedCssStyleDeclaration::computedCssStyleDeclarationPublicMethods() {
+  static ComputedCssStyleDeclarationPublicMethods computed_css_style_declaration_public_methods;
+  return &computed_css_style_declaration_public_methods;
+}
+
 }  // namespace webf

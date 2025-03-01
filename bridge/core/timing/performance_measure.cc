@@ -32,4 +32,13 @@ ScriptValue PerformanceMeasure::detail() const {
   return detail_;
 }
 
+bool PerformanceMeasure::IsPerformanceMeasure() const {
+  return true;
+}
+
+const PerformanceMeasurePublicMethods* PerformanceMeasure::performanceMeasurePublicMethods() {
+  static PerformanceMeasurePublicMethods performance_measure_public_methods;
+  return &performance_measure_public_methods;
+}
+
 }  // namespace webf

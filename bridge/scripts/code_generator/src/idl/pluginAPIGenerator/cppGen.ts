@@ -50,6 +50,10 @@ export function isStringType(type: ParameterType): boolean {
     || type.value === FunctionArgumentType.legacy_dom_string;
 }
 
+export function isVoidType(type: ParameterType): boolean {
+  return type.value === FunctionArgumentType.void;
+}
+
 function generatePublicReturnTypeValue(type: ParameterType, is32Bit: boolean = false): string {
   if (isPointerType(type)) {
     const pointerType = getPointerType(type);
@@ -360,6 +364,7 @@ function generatePluginAPISourceFile(blob: IDLBlob, options: GenerateOptions) {
           getPointerType,
           isStringType,
           isAnyType,
+          isVoidType,
           dependentTypes: Array.from(dependentTypes),
           dependentClasses,
           subClasses: _.uniq(subClasses),

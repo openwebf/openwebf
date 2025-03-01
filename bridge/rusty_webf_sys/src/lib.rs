@@ -7,8 +7,10 @@ pub mod css;
 pub mod dom;
 pub mod events;
 pub mod frame;
+pub mod geometry;
 pub mod html;
 pub mod input;
+pub mod timing;
 
 pub mod exception_state;
 pub mod executing_context;
@@ -23,8 +25,10 @@ pub use css::*;
 pub use dom::*;
 pub use events::*;
 pub use frame::*;
+pub use geometry::*;
 pub use html::*;
 pub use input::*;
+pub use timing::*;
 
 pub use exception_state::*;
 pub use executing_context::*;

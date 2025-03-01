@@ -9,17 +9,17 @@ use crate::*;
 enum EventType {
   Event = 0,
   CustomEvent = 1,
-  AnimationEvent = 2,
+  GestureEvent = 2,
   CloseEvent = 3,
-  GestureEvent = 4,
-  HashchangeEvent = 5,
-  IntersectionChangeEvent = 6,
-  TransitionEvent = 7,
-  UIEvent = 8,
-  FocusEvent = 9,
-  InputEvent = 10,
-  MouseEvent = 11,
-  PointerEvent = 12,
+  AnimationEvent = 4,
+  IntersectionChangeEvent = 5,
+  UIEvent = 6,
+  FocusEvent = 7,
+  InputEvent = 8,
+  MouseEvent = 9,
+  PointerEvent = 10,
+  TransitionEvent = 11,
+  HashchangeEvent = 12,
 }
 #[repr(C)]
 pub struct EventRustMethods {
@@ -181,15 +181,15 @@ impl Event {
     }
     Ok(CustomEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const CustomEventRustMethods, raw_ptr.status))
   }
-  pub fn as_animation_event(&self) -> Result<AnimationEvent, &str> {
+  pub fn as_gesture_event(&self) -> Result<GestureEvent, &str> {
     let raw_ptr = unsafe {
       assert!(!(*((*self).status)).disposed, "The underline C++ impl of this ptr({:?}) had been disposed", (self.method_pointer));
-      ((*self.method_pointer).dynamic_to)(self.ptr, EventType::AnimationEvent)
+      ((*self.method_pointer).dynamic_to)(self.ptr, EventType::GestureEvent)
     };
     if (raw_ptr.value == std::ptr::null()) {
-      return Err("The type value of Event does not belong to the AnimationEvent type.");
+      return Err("The type value of Event does not belong to the GestureEvent type.");
     }
-    Ok(AnimationEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const AnimationEventRustMethods, raw_ptr.status))
+    Ok(GestureEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const GestureEventRustMethods, raw_ptr.status))
   }
   pub fn as_close_event(&self) -> Result<CloseEvent, &str> {
     let raw_ptr = unsafe {
@@ -201,25 +201,15 @@ impl Event {
     }
     Ok(CloseEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const CloseEventRustMethods, raw_ptr.status))
   }
-  pub fn as_gesture_event(&self) -> Result<GestureEvent, &str> {
+  pub fn as_animation_event(&self) -> Result<AnimationEvent, &str> {
     let raw_ptr = unsafe {
       assert!(!(*((*self).status)).disposed, "The underline C++ impl of this ptr({:?}) had been disposed", (self.method_pointer));
-      ((*self.method_pointer).dynamic_to)(self.ptr, EventType::GestureEvent)
+      ((*self.method_pointer).dynamic_to)(self.ptr, EventType::AnimationEvent)
     };
     if (raw_ptr.value == std::ptr::null()) {
-      return Err("The type value of Event does not belong to the GestureEvent type.");
+      return Err("The type value of Event does not belong to the AnimationEvent type.");
     }
-    Ok(GestureEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const GestureEventRustMethods, raw_ptr.status))
-  }
-  pub fn as_hashchange_event(&self) -> Result<HashchangeEvent, &str> {
-    let raw_ptr = unsafe {
-      assert!(!(*((*self).status)).disposed, "The underline C++ impl of this ptr({:?}) had been disposed", (self.method_pointer));
-      ((*self.method_pointer).dynamic_to)(self.ptr, EventType::HashchangeEvent)
-    };
-    if (raw_ptr.value == std::ptr::null()) {
-      return Err("The type value of Event does not belong to the HashchangeEvent type.");
-    }
-    Ok(HashchangeEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const HashchangeEventRustMethods, raw_ptr.status))
+    Ok(AnimationEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const AnimationEventRustMethods, raw_ptr.status))
   }
   pub fn as_intersection_change_event(&self) -> Result<IntersectionChangeEvent, &str> {
     let raw_ptr = unsafe {
@@ -230,16 +220,6 @@ impl Event {
       return Err("The type value of Event does not belong to the IntersectionChangeEvent type.");
     }
     Ok(IntersectionChangeEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const IntersectionChangeEventRustMethods, raw_ptr.status))
-  }
-  pub fn as_transition_event(&self) -> Result<TransitionEvent, &str> {
-    let raw_ptr = unsafe {
-      assert!(!(*((*self).status)).disposed, "The underline C++ impl of this ptr({:?}) had been disposed", (self.method_pointer));
-      ((*self.method_pointer).dynamic_to)(self.ptr, EventType::TransitionEvent)
-    };
-    if (raw_ptr.value == std::ptr::null()) {
-      return Err("The type value of Event does not belong to the TransitionEvent type.");
-    }
-    Ok(TransitionEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const TransitionEventRustMethods, raw_ptr.status))
   }
   pub fn as_ui_event(&self) -> Result<UIEvent, &str> {
     let raw_ptr = unsafe {
@@ -290,6 +270,26 @@ impl Event {
       return Err("The type value of Event does not belong to the PointerEvent type.");
     }
     Ok(PointerEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const PointerEventRustMethods, raw_ptr.status))
+  }
+  pub fn as_transition_event(&self) -> Result<TransitionEvent, &str> {
+    let raw_ptr = unsafe {
+      assert!(!(*((*self).status)).disposed, "The underline C++ impl of this ptr({:?}) had been disposed", (self.method_pointer));
+      ((*self.method_pointer).dynamic_to)(self.ptr, EventType::TransitionEvent)
+    };
+    if (raw_ptr.value == std::ptr::null()) {
+      return Err("The type value of Event does not belong to the TransitionEvent type.");
+    }
+    Ok(TransitionEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const TransitionEventRustMethods, raw_ptr.status))
+  }
+  pub fn as_hashchange_event(&self) -> Result<HashchangeEvent, &str> {
+    let raw_ptr = unsafe {
+      assert!(!(*((*self).status)).disposed, "The underline C++ impl of this ptr({:?}) had been disposed", (self.method_pointer));
+      ((*self.method_pointer).dynamic_to)(self.ptr, EventType::HashchangeEvent)
+    };
+    if (raw_ptr.value == std::ptr::null()) {
+      return Err("The type value of Event does not belong to the HashchangeEvent type.");
+    }
+    Ok(HashchangeEvent::initialize(raw_ptr.value, self.context, raw_ptr.method_pointer as *const HashchangeEventRustMethods, raw_ptr.status))
   }
 }
 impl Drop for Event {

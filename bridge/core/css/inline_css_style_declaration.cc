@@ -289,4 +289,13 @@ void InlineCssStyleDeclaration::InternalClearProperty() {
                                                        nullptr);
 }
 
+bool InlineCssStyleDeclaration::IsInlineCssStyleDeclaration() const {
+  return true;
+}
+
+const InlineCssStyleDeclarationPublicMethods* InlineCssStyleDeclaration::inlineCssStyleDeclarationPublicMethods() {
+  static InlineCssStyleDeclarationPublicMethods inline_css_style_declaration_public_methods;
+  return &inline_css_style_declaration_public_methods;
+}
+
 }  // namespace webf

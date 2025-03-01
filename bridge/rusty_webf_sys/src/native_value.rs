@@ -101,7 +101,7 @@ impl NativeValue {
     let mut value = Self::new();
     value.tag = NativeTag::TagString as i32;
     value.u.ptr = shared_string_ptr as *mut c_void;
-    value.uint32 = len as u32;
+    value.uint32 = 0;
     value
   }
 
@@ -267,6 +267,29 @@ impl NativeValue {
       values.push(val);
     }
     values
+  }
+
+  pub fn new_json(val: &str) -> Self {
+    let len = val.len();
+    let shared_string_ptr = Self::create_string_ptr(val, len);
+    let mut value = Self::new();
+    value.tag = NativeTag::TagJson as i32;
+    value.u.ptr = shared_string_ptr as *mut c_void;
+    value.uint32 = 0;
+    value
+  }
+
+  pub fn is_json(&self) -> bool {
+    self.tag == NativeTag::TagJson as i32
+  }
+
+  pub fn to_json(&self) -> String {
+    let ptr = unsafe {
+      self.u.ptr as *mut SharedNativeString
+    };
+    let string_struct = unsafe { ptr.read() };
+    let slice = unsafe { std::slice::from_raw_parts(string_struct.string_, string_struct.length_.try_into().unwrap()) };
+    String::from_utf16_lossy(slice)
   }
 }
 

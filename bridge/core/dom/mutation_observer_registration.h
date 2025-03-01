@@ -39,6 +39,7 @@
 #include "bindings/qjs/script_wrappable.h"
 #include "mutation_observer.h"
 #include "mutation_observer_options.h"
+#include "plugin_api/mutation_observer_registration.h"
 
 namespace webf {
 
@@ -80,6 +81,7 @@ class MutationObserverRegistration : public ScriptWrappable {
   void Dispose();
 
   void Trace(GCVisitor*) const override;
+  const MutationObserverRegistrationPublicMethods* mutationObserverRegistrationPublicMethods();
 
  private:
   Member<MutationObserver> observer_;

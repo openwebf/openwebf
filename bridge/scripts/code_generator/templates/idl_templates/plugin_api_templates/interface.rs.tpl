@@ -283,8 +283,22 @@ impl <%= parentObject.name %>Methods for <%= className %> {
 }
 <% }); %>
 
-<% if (object.construct) { %>
+<% if (object.construct && !isVoidType(object.construct.returnType)) { %>
 impl ExecutingContext {
+
+  <% if (object.construct.args.length === 0) { %>
+  pub fn create_<%= _.snakeCase(className) %>(&self, exception_state: &ExceptionState) -> Result<<%= className %>, String> {
+    let new_obj = unsafe {
+      ((*self.method_pointer()).create_<%= _.snakeCase(className) %>)(self.ptr, exception_state.ptr)
+    };
+    if exception_state.has_exception() {
+      return Err(exception_state.stringify(self));
+    }
+    return Ok(<%= className %>::initialize(new_obj.value, self, new_obj.method_pointer, new_obj.status));
+  }
+  <% } %>
+
+  <% if (object.construct.args.length >= 1 && object.construct.args.some(arg => arg.name === 'type')) { %>
   pub fn create_<%= _.snakeCase(className) %>(&self, event_type: &str, exception_state: &ExceptionState) -> Result<<%= className %>, String> {
     let event_type_c_string = CString::new(event_type).unwrap();
     let new_event = unsafe {
@@ -295,16 +309,21 @@ impl ExecutingContext {
     }
     return Ok(<%= className %>::initialize(new_event.value, self, new_event.method_pointer, new_event.status));
   }
+  <% } %>
 
+  <% if (object.construct.args.length > 1) { %>
   pub fn create_<%= _.snakeCase(className) %>_with_options(&self, event_type: &str, options: &<%= className %>Init,  exception_state: &ExceptionState) -> Result<<%= className %>, String> {
+    <% if (object.construct.args.some(arg => arg.name === 'type')) { %>
     let event_type_c_string = CString::new(event_type).unwrap();
+    <% } %>
     let new_event = unsafe {
-      ((*self.method_pointer()).create_<%= _.snakeCase(className) %>_with_options)(self.ptr, event_type_c_string.as_ptr(), options, exception_state.ptr)
+      ((*self.method_pointer()).create_<%= _.snakeCase(className) %>_with_options)(self.ptr,<% if (object.construct.args.some(arg => arg.name === 'type')) { %> event_type_c_string.as_ptr(),<% } %> options, exception_state.ptr)
     };
     if exception_state.has_exception() {
       return Err(exception_state.stringify(self));
     }
     return Ok(<%= className %>::initialize(new_event.value, self, new_event.method_pointer, new_event.status));
   }
+  <% } %>
 }
 <% } %>

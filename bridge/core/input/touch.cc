@@ -117,4 +117,9 @@ void Touch::Trace(GCVisitor* visitor) const {
   visitor->TraceMember(target_);
 }
 
+const TouchPublicMethods* Touch::touchPublicMethods() {
+  static TouchPublicMethods touch_public_methods;
+  return &touch_public_methods;
+}
+
 }  // namespace webf

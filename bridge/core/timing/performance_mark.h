@@ -8,6 +8,7 @@
 #include "bindings/qjs/script_value.h"
 #include "performance_entry.h"
 #include "performance_entry_names.h"
+#include "plugin_api/performance_mark.h"
 #include "qjs_performance_mark_options.h"
 
 namespace webf {
@@ -31,8 +32,16 @@ class PerformanceMark : public PerformanceEntry {
 
   void Trace(GCVisitor* visitor) const override;
 
+  bool IsPerformanceMark() const override;
+  const PerformanceMarkPublicMethods* performanceMarkPublicMethods();
+
  private:
   ScriptValue detail_;
+};
+
+template <>
+struct DowncastTraits<PerformanceMark> {
+  static bool AllowFrom(const PerformanceEntry& entry) { return entry.IsPerformanceMark(); }
 };
 
 }  // namespace webf

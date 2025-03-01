@@ -44,6 +44,9 @@ class CSSStyleDeclaration : public BindingObject {
   //  virtual AtomicString cssText() const = 0;
   //  virtual void setCssText(const AtomicString& value, ExceptionState& exception_state) = 0;
 
+  virtual bool IsComputedCssStyleDeclaration() const override;
+  virtual bool IsInlineCssStyleDeclaration() const;
+
   const CSSStyleDeclarationPublicMethods* cssStyleDeclarationPublicMethods();
 
  private:

@@ -56,4 +56,13 @@ void PerformanceMark::Trace(GCVisitor* visitor) const {
   detail_.Trace(visitor);
 }
 
+bool PerformanceMark::IsPerformanceMark() const {
+  return true;
+}
+
+const PerformanceMarkPublicMethods* PerformanceMark::performanceMarkPublicMethods() {
+  static PerformanceMarkPublicMethods performance_mark_public_methods;
+  return &performance_mark_public_methods;
+}
+
 }  // namespace webf

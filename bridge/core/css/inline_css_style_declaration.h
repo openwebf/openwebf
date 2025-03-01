@@ -12,6 +12,7 @@
 #include "bindings/qjs/script_value.h"
 #include "bindings/qjs/script_wrappable.h"
 #include "css_style_declaration.h"
+#include "plugin_api/inline_css_style_declaration.h"
 
 namespace webf {
 
@@ -50,6 +51,9 @@ class InlineCssStyleDeclaration : public CSSStyleDeclaration {
 
   void Trace(GCVisitor* visitor) const override;
 
+  bool IsInlineCssStyleDeclaration() const override;
+  const InlineCssStyleDeclarationPublicMethods* inlineCssStyleDeclarationPublicMethods();
+
  private:
   AtomicString InternalGetPropertyValue(std::string& name);
   bool InternalSetProperty(std::string& name, const AtomicString& value);
@@ -57,6 +61,13 @@ class InlineCssStyleDeclaration : public CSSStyleDeclaration {
   void InternalClearProperty();
   std::unordered_map<std::string, AtomicString> properties_;
   Member<Element> owner_element_;
+};
+
+template <>
+struct DowncastTraits<InlineCssStyleDeclaration> {
+  static bool AllowFrom(const CSSStyleDeclaration& binding_object) {
+    return binding_object.IsInlineCssStyleDeclaration();
+  }
 };
 
 }  // namespace webf

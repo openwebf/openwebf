@@ -166,4 +166,9 @@ void DOMStringMap::Trace(webf::GCVisitor* visitor) const {
   visitor->TraceMember(owner_element_);
 }
 
+const DOMStringMapPublicMethods* DOMStringMap::domStringMapPublicMethods() {
+  static DOMStringMapPublicMethods dom_string_map_declaration_public_methods;
+  return &dom_string_map_declaration_public_methods;
+}
+
 }  // namespace webf
